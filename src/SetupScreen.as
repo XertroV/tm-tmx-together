@@ -21,10 +21,13 @@ class SetupScreen {
         }
         S_ClubID = UI::InputInt("Club ID", S_ClubID);
         S_RoomID = UI::InputInt("Room ID", S_RoomID);
+        bool inServer = BRM::IsInAServer(GetApp());
+        bool badRoom = false;
 
-        if (BRM::IsInAServer(GetApp())) {
+        if (inServer) {
             auto si = BRM::GetCurrentServerInfo(GetApp(), false);
             bool detected = si !is null && si.clubId == S_ClubID && si.roomId == S_RoomID;
+            badRoom = si !is null && (si.clubId != S_ClubID || si.roomId != S_RoomID);
             if (!detected && !autodetectActive && UI::Button("Autodetect")) {
                 startnew(CoroutineFunc(this.StartAutodetect));
             }
@@ -35,11 +38,18 @@ class SetupScreen {
                 UI::AlignTextToFramePadding();
                 UI::TextWrapped(autodetectStatus);
             }
+        } else {
+            UI::Text("Please join the server.");
         }
         S_LastTmxID = UI::InputInt("Next TMX ID", S_LastTmxID + 1) - 1;
 
-        if (UI::Button("Begin")) {
-            State::BeginGame();
+        if (inServer) {
+            if (badRoom) {
+                UI::TextWrapped("\\$f80Warning: it does not appear you are in the correct room. In rare cases it's correct to proceed anyway.");
+            }
+            if (UI::Button("Begin")) {
+                State::BeginGame();
+            }
         }
     }
 

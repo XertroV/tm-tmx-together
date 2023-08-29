@@ -55,23 +55,54 @@ void RenderMenu() {
     }
 }
 
-void RenderInterface() {
+int MainWindowFlags = UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoCollapse;
+
+void Render() {
     if (!ShowWindow) return;
+    if (!UI::IsOverlayShown() && !S_ShowIfOverlayHidden) return;
+    if (!UI::IsGameUIVisible() && !S_ShowIfUIHidden) return;
     vec2 size = vec2(450, 300);
     vec2 pos = (vec2(Draw::GetWidth(), Draw::GetHeight()) - size) / 2.;
     UI::SetNextWindowSize(int(size.x), int(size.y), UI::Cond::FirstUseEver);
     UI::SetNextWindowPos(int(pos.x), int(pos.y), UI::Cond::FirstUseEver);
+    PushFontSize();
     UI::PushStyleColor(UI::Col::FrameBg, vec4(.2, .2, .2, .5));
-    if (UI::Begin(MenuTitle, ShowWindow)) {
+    if (UI::Begin(MenuTitle, ShowWindow, MainWindowFlags)) {
+        float minWidth = State::IsRunning ? 170 : 350;
+        // if (windowSize.x < minWidth) {
+        //     UI::SetWindowSize(vec2(minWidth, windowSize.y), UI::Cond::Always);
+        // }
+        auto pos = UI::GetCursorPos();
+        UI::Dummy(vec2(minWidth, 0));
+        UI::SetCursorPos(pos);
         if (!HaveDeps || !UserHasPermissions) {
-            UI::TextWrapped("You need club access + install Better Room Manager. (One of these checks failed.)");
+            UI::TextWrapped("You need club access and/or install Better Room Manager. (One of these checks failed.)");
         } else {
             RenderMainUI();
         }
     }
     UI::End();
     UI::PopStyleColor();
+    PopFontSize();
 }
+
+
+void PushFontSize() {
+    if (S_FontSize == FontSize::S16_Bold) {
+        UI::PushFont(subheadingFont);
+    } else if (S_FontSize == FontSize::S20) {
+        UI::PushFont(headingFont);
+    } else if (S_FontSize == FontSize::S26) {
+        UI::PushFont(titleFont);
+    }
+}
+
+void PopFontSize() {
+    if (S_FontSize > FontSize::S16) {
+        UI::PopFont();
+    }
+}
+
 
 
 void RenderMainUI() {
