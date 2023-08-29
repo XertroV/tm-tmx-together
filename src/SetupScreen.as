@@ -32,16 +32,18 @@ class SetupScreen {
                 startnew(CoroutineFunc(this.StartAutodetect));
             }
             if (detected) {
-                UI::Text("You're in this room!");
+                UI::Text("\\$8f8You're in this room!");
             }
             if (autodetectActive || autodetectError) {
                 UI::AlignTextToFramePadding();
                 UI::TextWrapped(autodetectStatus);
             }
         } else {
-            UI::Text("Please join the server.");
+            UI::Text("\\$f80Please join the server.");
         }
         S_LastTmxID = UI::InputInt("Next TMX ID", S_LastTmxID + 1) - 1;
+
+        UI::TextWrapped("\\$aaaMode option: only 'host decides' when to move on atm. Other modes like 'first AT' or 'after X minutes' are possible too.");
 
         if (inServer) {
             if (badRoom) {
