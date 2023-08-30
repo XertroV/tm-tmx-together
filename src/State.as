@@ -122,7 +122,9 @@ namespace State {
     void SetNextRoomTA() {
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
-            .SetTimeLimit(1).SetChatTime(1).SetMaps({loadNextUid})
+            .SetTimeLimit(S_TimeLimitOnEndMap)
+            .SetChatTime(1)
+            .SetMaps({loadNextUid})
             .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
             .SetModeSetting("S_DelayBeforeNextMap", "1")
             .SetMode(BRM::GameMode::TimeAttack);
@@ -147,8 +149,11 @@ namespace State {
     void RunBackToLobbyMap() {
         status = "Loading Map " + S_LobbyMapUID;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
-            .SetTimeLimit(1).SetChatTime(1).SetMaps({S_LobbyMapUID})
+            .SetTimeLimit(S_TimeLimitOnEndMap)
+            .SetChatTime(1)
+            .SetMaps({S_LobbyMapUID})
             .SetLoadingScreenUrl(S_LobbyLoadingScreenImageUrl)
+            .SetModeSetting("S_DelayBeforeNextMap", "1")
             .SetMode(BRM::GameMode::TimeAttack);
         auto resp = builder.SaveRoom();
         status += "\nSaved Room maps + time limit... Waiting 5s";
