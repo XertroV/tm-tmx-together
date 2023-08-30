@@ -42,7 +42,7 @@ void NotifyWarning(const string &in msg) {
 }
 
 const string PluginIcon = Icons::ListOl;
-const string MenuTitle = "\\$3f3" + PluginIcon + "\\$z " + Meta::ExecutingPlugin().Name;
+const string MenuTitle = "\\$000" + PluginIcon + "\\$z " + Meta::ExecutingPlugin().Name;
 
 // show the window immediately upon installation
 [Setting hidden]

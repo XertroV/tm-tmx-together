@@ -54,9 +54,14 @@ namespace State {
         startnew(LoadNextTmxMap);
     }
 
+    void HardReset() {
+        currState = GameState::NotRunning;
+    }
+
     // should be called once per frame when necessary
     void CheckStillInServer() {
         if (!_IsStillInServer()) {
+            trace("Detected not in server, resetting game state");
             currState = GameState::NotRunning;
         }
     }
@@ -91,6 +96,18 @@ namespace State {
         }
     }
 
+    void BackToLobby() {
+        currState = GameState::Loading;
+        try {
+            status = "Loading lobby map: " + S_LobbyMapUID;
+            startnew(RunBackToLobbyMap);
+        } catch {
+            status = "Something went wrong returning to lobby map! " + getExceptionInfo();
+            currState = GameState::Error;
+        }
+
+    }
+
     bool CheckUploadedToNadeo() {
         auto map = Core::GetMapFromUid(loadNextUid);
         if (map is null) return false;
@@ -99,13 +116,15 @@ namespace State {
     }
 
     void InitializeRoom() {
-        SetNextRoom();
+        SetNextRoomTA();
     }
 
-    void SetNextRoom() {
+    void SetNextRoomTA() {
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
             .SetTimeLimit(1).SetChatTime(1).SetMaps({loadNextUid})
+            .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
+            .SetModeSetting("S_DelayBeforeNextMap", "1")
             .SetMode(BRM::GameMode::TimeAttack);
         auto resp = builder.SaveRoom();
         status += "\nSaved Room maps + time limit... Waiting 5s";
@@ -116,7 +135,7 @@ namespace State {
         status = "Adjusting room time limit to " + limit;
         builder.SaveRoom();
         status = "Room finalized, awaiting map change...";
-        AwaitMapUidLoad();
+        AwaitMapUidLoad(loadNextUid);
         status = "Done";
         currState = GameState::Running;
         S_LastTmxID = loadNextId;
@@ -124,7 +143,29 @@ namespace State {
         return;
     }
 
-    void AwaitMapUidLoad() {
+
+    void RunBackToLobbyMap() {
+        status = "Loading Map " + S_LobbyMapUID;
+        auto builder = BRM::CreateRoomBuilder(clubId, roomId)
+            .SetTimeLimit(1).SetChatTime(1).SetMaps({S_LobbyMapUID})
+            .SetLoadingScreenUrl(S_LobbyLoadingScreenImageUrl)
+            .SetMode(BRM::GameMode::TimeAttack);
+        auto resp = builder.SaveRoom();
+        status += "\nSaved Room maps + time limit... Waiting 5s";
+        log_trace('Room request returned: ' + Json::Write(resp));
+        sleep(5000);
+        int limit = -1;
+        builder.SetTimeLimit(limit);
+        status = "Adjusting room time limit to " + limit;
+        builder.SaveRoom();
+        status = "Room finalized, awaiting map change...";
+        AwaitMapUidLoad(S_LobbyMapUID);
+        status = "Done";
+        currState = GameState::NotRunning;
+        return;
+    }
+
+    void AwaitMapUidLoad(const string &in uid) {
         auto app = GetApp();
         while (true) {
             yield();
@@ -133,9 +174,45 @@ namespace State {
             // wait for a map
             if (app.RootMap is null) continue;
             // check uid
-            if (app.RootMap.EdChallengeId != loadNextUid) continue;
+            if (app.RootMap.EdChallengeId != uid) continue;
             // loaded correct map
             break;
         }
     }
 }
+
+    // void SetNextRoomRounds() {
+    //     status = "Loading Map " + loadNextId + " / " + loadNextUid;
+    //     auto builder = BRM::CreateRoomBuilder(clubId, roomId)
+    //         .SetTimeLimit(1).SetChatTime(1).SetMaps({loadNextUid})
+    //         .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
+    //         .SetMode(BRM::GameMode::Teams)
+    //         .SetModeSetting("S_PointsRepartition", "12,8,5,3,2,1,1")
+    //         .SetModeSetting("S_FinishTimeout", "10")
+    //         .SetModeSetting("S_PointsLimit", "1")
+    //         .SetModeSetting("S_RoundsPerMap", "1")
+    //         .SetModeSetting("S_DelayBeforeNextMap", "1")
+    //         // .SetModeSetting("S_RespawnBehaviour", "5")
+    //         .SetModeSetting("S_SynchronizePlayersAtRoundStart", "false")
+    //         // .SetModeSetting("S_CumulatePoints", "true")
+    //         ;
+    //     auto resp = builder.SaveRoom();
+    //     status += "\nSaved Room maps + time limit... Waiting for next map";
+    //     log_trace('Room request returned: ' + Json::Write(resp));
+    //     AwaitMapUidLoad(loadNextUid);
+    //     sleep(5000);
+    //     int limit = -1;
+    //     builder.SetTimeLimit(limit)
+    //         .SetModeSetting("S_PointsLimit", "100")
+    //         .SetModeSetting("S_RoundsPerMap", "-1")
+    //         ;
+    //     status = "Adjusting room time limit to " + limit;
+    //     builder.SaveRoom();
+    //     status = "Room finalized, awaiting map change...";
+    //     AwaitMapUidLoad(loadNextUid);
+    //     status = "Done";
+    //     currState = GameState::Running;
+    //     S_LastTmxID = loadNextId;
+    //     Meta::SaveSettings();
+    //     return;
+    // }

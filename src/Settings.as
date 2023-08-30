@@ -14,7 +14,13 @@ uint S_RoomID = 0;
 uint S_LastTmxID = 0;
 
 [Setting category="General" name="Lobby Map UID"]
-string S_LobbyMapUID = "cg0iziijnpoa6FDLQ1X2AjR2wbm";
+string S_LobbyMapUID = "9ZmfOvlHBXddVLngtdfnRGaIunc";
+
+[Setting category="General" name="Loading Screen Image URL"]
+string S_LoadingScreenImageUrl = "https://i.imgur.com/xEqv5fr.png";
+
+[Setting category="General" name="Lobby Loading Screen Image URL"]
+string S_LobbyLoadingScreenImageUrl = "https://i.imgur.com/xEqv5fr.png";
 
 [Setting category="General" name="Font Size"]
 FontSize S_FontSize = FontSize::S16;

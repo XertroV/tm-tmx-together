@@ -8,7 +8,10 @@ class SetupScreen {
         "1. Click Autodetect\n"
         "  a. Alternatively: Enter the ClubID and RoomID for the server\n"
         "2. Set the 'Next TMX Map' to the map you want to load.\n"
-        "3. Set mode options for how you want to advance to the next track.\n";
+        // "3. Set mode options for how you want to advance to the next track.\n"
+        ;
+
+    uint wasJoining = 0;
 
     void Render() {
         SubHeading("Configure TMX Together:");
@@ -33,6 +36,8 @@ class SetupScreen {
             }
             if (detected) {
                 UI::Text("\\$8f8You're in this room!");
+            } else if (si is null) {
+                UI::Text("\\$f80Waiting for room detection...");
             }
             if (autodetectActive || autodetectError) {
                 UI::AlignTextToFramePadding();
@@ -43,16 +48,19 @@ class SetupScreen {
             UI::Text("\\$f80Please join the server.");
             if (!autodetectActive) {
                 UI::SameLine();
-                if (UI::Button("Try joining")) {
+                if (Time::Now - wasJoining < 5000) {
+                    UI::Text("Joining...");
+                } else if (UI::Button("Try joining")) {
                     startnew(CoroutineFunc(OnClickJoinServer));
                 }
             } else {
-                UI::Text("Joining...");
+                UI::Text("Joining... (can take up to 15s)");
+                wasJoining = Time::Now;
             }
         }
         S_LastTmxID = UI::InputInt("Next TMX ID", S_LastTmxID + 1) - 1;
 
-        UI::TextWrapped("\\$aaaMode option: only 'host decides' when to move on atm. Other modes like 'first AT' or 'after X minutes' are possible too.");
+        // UI::TextWrapped("\\$aaaMode option: only 'host decides' when to move on atm. Other modes like 'first AT' or 'after X minutes' are possible too.");
 
         if (inServer) {
             if (badRoom) {

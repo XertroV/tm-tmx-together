@@ -25,9 +25,17 @@ class GameInterface {
     void RenderRunning() {
         UI::AlignTextToFramePadding();
         UI::Text("Current Map: " + State::loadNextId);
+        // UI::SetNextItemWidth(130);
+        // S_LastTmxID = UI::InputInt("Next Map", S_LastTmxID + 1) - 1;
+        auto cp = UI::GetCursorPos();
         if (UI::Button("Next")) {
             startnew(State::LoadNextTmxMap);
         }
+        UI::SetCursorPos(cp + vec2(130, 0));
+        if (UI::Button("To Lobby")) {
+            startnew(State::BackToLobby);
+        }
+
     }
     void RenderNotRunning() {
         UI::Text("\\$f80Should never show!");
@@ -49,6 +57,8 @@ class GameInterface {
         SubHeading("Error!");
         UI::TextWrapped(State::status);
         UI::Button("Todo retry");
-        UI::Button("Todo reset");
+        if (UI::Button("Reset Plugin")) {
+            State::HardReset();
+        }
     }
 }
