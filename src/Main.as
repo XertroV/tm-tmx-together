@@ -62,9 +62,9 @@ void Render() {
     if (!UI::IsOverlayShown() && !S_ShowIfOverlayHidden) return;
     if (!UI::IsGameUIVisible() && !S_ShowIfUIHidden) return;
     vec2 size = vec2(450, 300);
-    vec2 pos = (vec2(Draw::GetWidth(), Draw::GetHeight()) - size) / 2.;
+    vec2 wpos = (vec2(Draw::GetWidth(), Draw::GetHeight()) - size) / 2.;
     UI::SetNextWindowSize(int(size.x), int(size.y), UI::Cond::FirstUseEver);
-    UI::SetNextWindowPos(int(pos.x), int(pos.y), UI::Cond::FirstUseEver);
+    UI::SetNextWindowPos(int(wpos.x), int(wpos.y), UI::Cond::FirstUseEver);
     PushFontSize();
     UI::PushStyleColor(UI::Col::FrameBg, vec4(.2, .2, .2, .5));
     if (UI::Begin(MenuTitle, ShowWindow, MainWindowFlags)) {

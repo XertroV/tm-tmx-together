@@ -26,8 +26,8 @@ class SetupScreen {
 
         if (inServer) {
             auto si = BRM::GetCurrentServerInfo(GetApp(), false);
-            bool detected = si !is null && si.clubId == S_ClubID && si.roomId == S_RoomID;
-            badRoom = si !is null && (si.clubId != S_ClubID || si.roomId != S_RoomID);
+            bool detected = si !is null && si.clubId == int(S_ClubID) && si.roomId == int(S_RoomID);
+            badRoom = si !is null && (si.clubId != int(S_ClubID) || si.roomId != int(S_RoomID));
             if (!detected && !autodetectActive && UI::Button("Autodetect")) {
                 startnew(CoroutineFunc(this.StartAutodetect));
             }
@@ -39,7 +39,16 @@ class SetupScreen {
                 UI::TextWrapped(autodetectStatus);
             }
         } else {
+            UI::AlignTextToFramePadding();
             UI::Text("\\$f80Please join the server.");
+            if (!autodetectActive) {
+                UI::SameLine();
+                if (UI::Button("Try joining")) {
+                    startnew(CoroutineFunc(OnClickJoinServer));
+                }
+            } else {
+                UI::Text("Joining...");
+            }
         }
         S_LastTmxID = UI::InputInt("Next TMX ID", S_LastTmxID + 1) - 1;
 
@@ -55,6 +64,17 @@ class SetupScreen {
         }
     }
 
+    void OnClickJoinServer() {
+        try {
+            autodetectActive = true;
+            autodetectStatus = "Getting join link...";
+            BRM::JoinServer(S_ClubID, S_RoomID);
+        } catch {
+            autodetectError = true;
+            autodetectStatus = "Exception joining room: " + getExceptionInfo();
+        }
+        autodetectActive = false;
+    }
 
     bool autodetectActive = false;
     bool autodetectError = false;

@@ -13,6 +13,9 @@ uint S_RoomID = 0;
 [Setting category="General" name="Last TMX ID"]
 uint S_LastTmxID = 0;
 
+[Setting category="General" name="Lobby Map UID"]
+string S_LobbyMapUID = "cg0iziijnpoa6FDLQ1X2AjR2wbm";
+
 [Setting category="General" name="Font Size"]
 FontSize S_FontSize = FontSize::S16;
 

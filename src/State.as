@@ -7,9 +7,27 @@ enum GameState {
     Error,
 }
 
-enum GameMode {
-    HostDecides,
-    FirstAT,
+// Who can trigger the next map -- ::Anyone requires
+enum NextMapCondSource {
+    Host_Only,
+    Anyone,
+}
+
+enum NextMapChoice {
+    Next_Track_ID,
+    MapPack_Next,
+    MapPack_Random,
+    TMX_Random,
+    Unbeaten_ATs_Random,
+}
+
+enum NextMapCondTrigger {
+    None,
+    Medal_AT,
+    Medal_Gold,
+    Medal_Silver,
+    Medal_Bronze,
+    Time_Limit,
 }
 
 namespace State {
@@ -50,7 +68,7 @@ namespace State {
         if (app.Editor !is null) return false;
         auto si = BRM::GetCurrentServerInfo(app, false);
         if (si is null) return false;
-        return clubId == si.clubId && roomId == si.roomId;
+        return int(clubId) == si.clubId && int(roomId) == si.roomId;
     }
 
     uint loadNextId;
@@ -87,7 +105,8 @@ namespace State {
     void SetNextRoom() {
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
-            .SetTimeLimit(1).SetChatTime(1).SetMaps({loadNextUid});
+            .SetTimeLimit(1).SetChatTime(1).SetMaps({loadNextUid})
+            .SetMode(BRM::GameMode::TimeAttack);
         auto resp = builder.SaveRoom();
         status += "\nSaved Room maps + time limit... Waiting 5s";
         log_trace('Room request returned: ' + Json::Write(resp));
