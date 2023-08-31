@@ -15,4 +15,3 @@ GL HF
 
 Todo:
 - Add rejoining room that's active
-- Add default TimeLimit
