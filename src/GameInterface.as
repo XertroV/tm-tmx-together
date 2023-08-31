@@ -35,6 +35,13 @@ class GameInterface {
         if (UI::Button("To Lobby")) {
             startnew(State::BackToLobby);
         }
+        if (State::mapTimeLimitWithExt > 0) {
+            UI::Separator();
+            if (UI::Button("Extend Time Limit")) {
+                //! todo
+                startnew(State::ExtendTimeLimit);
+            }
+        }
 
     }
     void RenderNotRunning() {

@@ -119,6 +119,7 @@ namespace State {
         SetNextRoomTA();
     }
 
+    int mapTimeLimitWithExt = 300;
     void SetNextRoomTA() {
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
@@ -131,8 +132,9 @@ namespace State {
         auto resp = builder.SaveRoom();
         status += "\nSaved Room maps + time limit... Waiting 5s";
         log_trace('Room request returned: ' + Json::Write(resp));
-        sleep(5000);
-        int limit = -1;
+        sleep(Math::Max(5000, S_TimeLimitOnEndMap * 1000));
+        int limit = S_DefaultTimeLimit;
+        mapTimeLimitWithExt = limit;
         builder.SetTimeLimit(limit);
         status = "Adjusting room time limit to " + limit;
         builder.SaveRoom();
@@ -142,9 +144,20 @@ namespace State {
         currState = GameState::Running;
         S_LastTmxID = loadNextId;
         Meta::SaveSettings();
-        return;
     }
 
+    void ExtendTimeLimit() {
+        if (mapTimeLimitWithExt < 0) return;
+        currState = GameState::Loading;
+        mapTimeLimitWithExt += S_DefaultTimeLimit;
+        status = "Extending time limit to " + mapTimeLimitWithExt + " seconds...";
+        auto builder = BRM::CreateRoomBuilder(clubId, roomId)
+            .GetCurrentSettingsAsync()
+            .SetTimeLimit(mapTimeLimitWithExt);
+        builder.SaveRoom();
+        status = "Extended time limit.";
+        currState = GameState::Running;
+    }
 
     void RunBackToLobbyMap() {
         status = "Loading Map " + S_LobbyMapUID;
@@ -158,7 +171,7 @@ namespace State {
         auto resp = builder.SaveRoom();
         status += "\nSaved Room maps + time limit... Waiting 5s";
         log_trace('Room request returned: ' + Json::Write(resp));
-        sleep(5000);
+        sleep(Math::Max(5000, S_TimeLimitOnEndMap * 1000));
         int limit = -1;
         builder.SetTimeLimit(limit);
         status = "Adjusting room time limit to " + limit;

@@ -13,8 +13,12 @@ uint S_RoomID = 0;
 [Setting category="General" name="Last TMX ID"]
 uint S_LastTmxID = 0;
 
-[Setting category="General" name="Set TimeLimit on Ending Map (s)" min=1 max=120]
+// todo: need to track time spent in map to set this accurately.
+// [Setting category="General" name="Set TimeLimit on Ending Map (s)" min=1 max=120]
 int S_TimeLimitOnEndMap = 1;
+
+[Setting category="General" name="Default TimeLimit each Map (s); -1 for infinite"]
+int S_DefaultTimeLimit = 300;
 
 [Setting category="General" name="Lobby Map UID"]
 string S_LobbyMapUID = "9ZmfOvlHBXddVLngtdfnRGaIunc";
