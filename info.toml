@@ -6,5 +6,5 @@ version  = "0.1.0"
 
 [script]
 #__DEFINES__
-dependencies = ["NadeoServices"]
-optional_dependencies = ["BetterRoomManager", "better-room-manager-dev"]
+dependencies = ["NadeoServices", "MLHook", "MLFeedRaceData"]
+optional_dependencies = ["BetterChat", "BetterRoomManager", "better-room-manager-dev"]

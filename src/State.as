@@ -162,7 +162,7 @@ namespace State {
         }
         status = "Extending time limit to " + mapTimeLimitWithExt + " seconds...";
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
-            .GetCurrentSettingsAsync()
+            .LoadCurrentSettingsAsync()
             .SetTimeLimit(mapTimeLimitWithExt);
         builder.SaveRoom();
         status = "Extended time limit.";
