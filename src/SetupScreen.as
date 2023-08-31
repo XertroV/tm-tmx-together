@@ -26,15 +26,16 @@ class SetupScreen {
         S_RoomID = UI::InputInt("Room ID", S_RoomID);
         bool inServer = BRM::IsInAServer(GetApp());
         bool badRoom = false;
+        bool correctRoom = false;
 
         if (inServer) {
             auto si = BRM::GetCurrentServerInfo(GetApp(), false);
-            bool detected = si !is null && si.clubId == int(S_ClubID) && si.roomId == int(S_RoomID);
+            correctRoom = si !is null && si.clubId == int(S_ClubID) && si.roomId == int(S_RoomID);
             badRoom = si !is null && (si.clubId != int(S_ClubID) || si.roomId != int(S_RoomID));
-            if (!detected && !autodetectActive && UI::Button("Autodetect")) {
+            if (!correctRoom && !autodetectActive && UI::Button("Autodetect")) {
                 startnew(CoroutineFunc(this.StartAutodetect));
             }
-            if (detected) {
+            if (correctRoom) {
                 UI::Text("\\$8f8You're in this room!");
             } else if (si is null) {
                 UI::Text("\\$f80Waiting for room detection...");
@@ -69,7 +70,29 @@ class SetupScreen {
             if (UI::Button("Begin")) {
                 State::BeginGame();
             }
+
+            if (correctRoom) {
+#if DEPENDENCY_MAPINFO || DEV
+                startnew(CoroutineFunc(CheckMapInfoForCorrectMap));
+#endif
+            }
         }
+    }
+
+    void CheckMapInfoForCorrectMap() {
+        bool isDev = false;
+#if DEV
+        isDev = true;
+#endif
+#if DEPENDENCY_MAPINFO || DEV
+        if (isDev || Meta::GetPluginFromID("MapInfo").Enabled) {
+            auto data = MapInfo::GetCurrentMapInfo();
+            if (data is null) return;
+            if (data.TrackID == int(S_LastTmxID)) {
+                State::ResumeGame();
+            }
+        }
+#endif
     }
 
     void OnClickJoinServer() {

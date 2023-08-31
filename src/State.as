@@ -54,6 +54,14 @@ namespace State {
         startnew(LoadNextTmxMap);
     }
 
+    void ResumeGame() {
+        clubId = S_ClubID;
+        roomId = S_RoomID;
+        lastTmxId = S_LastTmxID;
+        loadNextId = S_LastTmxID;
+        currState = GameState::Running;
+    }
+
     void HardReset() {
         currState = GameState::NotRunning;
     }
