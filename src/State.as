@@ -124,7 +124,7 @@ namespace State {
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
             .SetTimeLimit(S_TimeLimitOnEndMap)
-            .SetChatTime(1)
+            .SetChatTime(0)
             .SetMaps({loadNextUid})
             .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
             .SetModeSetting("S_DelayBeforeNextMap", "1")
@@ -146,10 +146,20 @@ namespace State {
         Meta::SaveSettings();
     }
 
+    void RemoveTimeLimit() {
+        ModifyTimeLimit(-1);
+    }
     void ExtendTimeLimit() {
+        ModifyTimeLimit(S_DefaultTimeLimit);
+    }
+    void ModifyTimeLimit(int extraTime) {
         if (mapTimeLimitWithExt < 0) return;
         currState = GameState::Loading;
-        mapTimeLimitWithExt += S_DefaultTimeLimit;
+        if (extraTime < 0) {
+            mapTimeLimitWithExt = -1;
+        } else {
+            mapTimeLimitWithExt += extraTime;
+        }
         status = "Extending time limit to " + mapTimeLimitWithExt + " seconds...";
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
             .GetCurrentSettingsAsync()
@@ -163,7 +173,7 @@ namespace State {
         status = "Loading Map " + S_LobbyMapUID;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
             .SetTimeLimit(S_TimeLimitOnEndMap)
-            .SetChatTime(1)
+            .SetChatTime(0)
             .SetMaps({S_LobbyMapUID})
             .SetLoadingScreenUrl(S_LobbyLoadingScreenImageUrl)
             .SetModeSetting("S_DelayBeforeNextMap", "1")
@@ -202,7 +212,7 @@ namespace State {
     // void SetNextRoomRounds() {
     //     status = "Loading Map " + loadNextId + " / " + loadNextUid;
     //     auto builder = BRM::CreateRoomBuilder(clubId, roomId)
-    //         .SetTimeLimit(1).SetChatTime(1).SetMaps({loadNextUid})
+    //         .SetTimeLimit(1).SetChatTime(0).SetMaps({loadNextUid})
     //         .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
     //         .SetMode(BRM::GameMode::Teams)
     //         .SetModeSetting("S_PointsRepartition", "12,8,5,3,2,1,1")

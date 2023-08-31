@@ -38,8 +38,10 @@ class GameInterface {
         if (State::mapTimeLimitWithExt > 0) {
             UI::Separator();
             if (UI::Button("Extend Time Limit")) {
-                //! todo
                 startnew(State::ExtendTimeLimit);
+            }
+            if (UI::Button("Remove Time Limit")) {
+                startnew(State::RemoveTimeLimit);
             }
         }
 
