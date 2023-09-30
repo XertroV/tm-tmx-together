@@ -84,6 +84,7 @@ namespace State {
         return int(clubId) == si.clubId && int(roomId) == si.roomId;
     }
 
+    uint lastLoadedId;
     uint loadNextId;
     string loadNextUid;
     void LoadNextTmxMap() {
@@ -91,7 +92,7 @@ namespace State {
         try {
             status = "Loading next TMX map...";
             auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID);
-            loadNextId = resp['next'];
+            lastLoadedId = loadNextId = resp['next'];
             loadNextUid = resp['next_uid'];
             if (!CheckUploadedToNadeo()) {
                 LoadNextTmxMap();

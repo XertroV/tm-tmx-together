@@ -24,7 +24,8 @@ class GameInterface {
 
     void RenderRunning() {
         UI::AlignTextToFramePadding();
-        UI::Text("Current Map: " + State::loadNextId);
+        UI::Text("Current Map: " + State::lastLoadedId);
+        S_LastTmxID = UI::InputInt("Next TMX ID", S_LastTmxID + 1) - 1;
         // UI::SetNextItemWidth(130);
         // S_LastTmxID = UI::InputInt("Next Map", S_LastTmxID + 1) - 1;
         auto cp = UI::GetCursorPos();
