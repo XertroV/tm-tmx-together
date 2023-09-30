@@ -84,8 +84,8 @@ namespace State {
         return int(clubId) == si.clubId && int(roomId) == si.roomId;
     }
 
-    uint lastLoadedId;
-    uint loadNextId;
+    uint lastLoadedId = S_LastTmxID;
+    uint loadNextId = S_LastTmxID;
     string loadNextUid;
     void LoadNextTmxMap() {
         currState = GameState::Loading;
