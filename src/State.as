@@ -131,16 +131,17 @@ namespace State {
     void SetNextRoomTA() {
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
-            .SetTimeLimit(S_TimeLimitOnEndMap)
+            .SetTimeLimit(1)
             .SetChatTime(0)
             .SetMaps({loadNextUid})
             .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
             .SetModeSetting("S_DelayBeforeNextMap", "1")
             .SetMode(BRM::GameMode::TimeAttack);
+
         auto resp = builder.SaveRoom();
         status += "\nSaved Room maps + time limit... Waiting 5s";
         log_trace('Room request returned: ' + Json::Write(resp));
-        sleep(Math::Max(5000, S_TimeLimitOnEndMap * 1000));
+        sleep(Math::Max(5000, 1 * 1000));
         int limit = S_DefaultTimeLimit;
         mapTimeLimitWithExt = limit;
         builder.SetTimeLimit(limit);
