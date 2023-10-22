@@ -151,3 +151,11 @@ void AddSimpleTooltip(const string &in msg) {
         UI::EndTooltip();
     }
 }
+
+
+
+void OnDestroyed() { _Unload(); }
+void OnDisabled() { _Unload(); }
+void _Unload() {
+    Chat::Unload();
+}

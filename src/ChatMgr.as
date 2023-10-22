@@ -27,6 +27,14 @@ namespace Chat {
         @hist = ctx.History_Create("t", 20);
     }
 
+    void Unload() {
+        if (hist is null) return;
+        auto mgr = GetApp().ChatManagerScriptV2;
+        if (mgr is null || mgr.Contextes.Length == 0) return;
+        auto ctx = mgr.Contextes[0];
+        ctx.History_Destroy(hist);
+    }
+
     dictionary moveOns;
     dictionary waits;
     dictionary votes;
