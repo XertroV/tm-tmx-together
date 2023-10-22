@@ -95,12 +95,10 @@ class GameInterface {
                             auto cpBest = p.CpCount == 0 ? 0 : int(best[p.CpCount - 1]);
                             auto lastCpTimeVirtual = p.LastCpOrRespawnTime;
                             // account for current race time via next cp
-                            if (p.CpCount < int(best.Length)) {
-                                if (p.CurrentRaceTime > best[p.CpCount]) {
-                                    isBehind = true;
-                                    lastCpTimeVirtual = p.CurrentRaceTime;
-                                    cpBest = best[p.CpCount];
-                                }
+                            if (p.CpCount < int(best.Length) && p.CurrentRaceTime > best[p.CpCount]) {
+                                isBehind = true;
+                                lastCpTimeVirtual = p.CurrentRaceTime;
+                                cpBest = best[p.CpCount];
                             }
                             string time = (p.IsFinished ? (lastCpTimeVirtual <= cpBest ? "\\$5f5" : "\\$f53") : (lastCpTimeVirtual <= cpBest && !isBehind) ? "\\$48f-" : "\\$f84+")
                                 + Time::Format(p.IsFinished ? p.LastCpTime : Math::Abs(lastCpTimeVirtual - cpBest))
