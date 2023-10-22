@@ -90,9 +90,9 @@ class GameInterface {
                         UI::Text(Time::Format(p.LastCpOrRespawnTime));
                         UI::TableNextColumn();
                         auto best = p.BestRaceTimes;
-                        if (best !is null && p.CpCount > 0 && p.CpCount <= int(best.Length)) {
+                        if (best !is null && p.CpCount <= int(best.Length)) {
                             bool isBehind = false;
-                            auto cpBest = int(best[p.CpCount - 1]);
+                            auto cpBest = p.CpCount == 0 ? 0 : int(best[p.CpCount - 1]);
                             auto lastCpTimeVirtual = p.LastCpOrRespawnTime;
                             // account for current race time via next cp
                             if (p.CpCount < int(best.Length)) {
@@ -102,8 +102,8 @@ class GameInterface {
                                     cpBest = best[p.CpCount];
                                 }
                             }
-                            string time = ((lastCpTimeVirtual < cpBest && !isBehind) ? "\\$48f-" : "\\$f84+")
-                                + Time::Format(Math::Abs(lastCpTimeVirtual - cpBest))
+                            string time = (p.IsFinished ? (lastCpTimeVirtual <= cpBest ? "\\$5f5" : "\\$f53") : (lastCpTimeVirtual <= cpBest && !isBehind) ? "\\$48f-" : "\\$f84+")
+                                + Time::Format(p.IsFinished ? p.LastCpTime : Math::Abs(lastCpTimeVirtual - cpBest))
                                 + (isBehind ? " (*)" : "");
                             UI::Text(time);
                         } else {
