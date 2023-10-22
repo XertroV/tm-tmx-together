@@ -18,12 +18,29 @@ void Main() {
     }
     startnew(MainCoro);
     startnew(ClearTaskCoro);
+    startnew(Chat::ChatCoro).WithRunContext(Meta::RunContext::GameLoop);
 }
 
+string lastMap;
 void MainCoro() {
     while (true) {
         yield();
+        if (!ShowWindow) continue;
+        auto map = GetApp().RootMap;
+        if (map is null) {
+            if (lastMap.Length > 0) {
+                lastMap = "";
+                OnMapChange();
+            }
+        } else if (lastMap != map.EdChallengeId) {
+            lastMap = map.EdChallengeId;
+            OnMapChange();
+        }
     }
+}
+
+void OnMapChange() {
+    Chat::ResetState();
 }
 
 void Notify(const string &in msg) {

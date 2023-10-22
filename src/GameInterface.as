@@ -25,6 +25,7 @@ class GameInterface {
     void RenderRunning() {
         UI::AlignTextToFramePadding();
         UI::Text("Current Map: " + State::lastLoadedId);
+        UI::SetNextItemWidth(200);
         S_LastTmxID = UI::InputInt("Next TMX ID", S_LastTmxID + 1) - 1;
         // UI::SetNextItemWidth(130);
         // S_LastTmxID = UI::InputInt("Next Map", S_LastTmxID + 1) - 1;
@@ -32,7 +33,7 @@ class GameInterface {
         if (UI::Button("Next")) {
             startnew(State::LoadNextTmxMap);
         }
-        UI::SetCursorPos(cp + vec2(130, 0));
+        UI::SetCursorPos(cp + vec2(210, 0));
         if (UI::Button("To Lobby")) {
             startnew(State::BackToLobby);
         }
@@ -41,12 +42,55 @@ class GameInterface {
             if (UI::Button("Extend Time Limit")) {
                 startnew(State::ExtendTimeLimit);
             }
+            UI::SameLine();
+            UI::Dummy(vec2(20, 0));
+            UI::SameLine();
             if (UI::Button("Remove Time Limit")) {
                 startnew(State::RemoveTimeLimit);
             }
         }
+        if (Chat::HasInfo) {
+            UI::Separator();
+            DrawChatMoveOns();
+            DrawChatVotes();
+        }
 
     }
+
+    void DrawChatMoveOns() {
+        if (!Chat::HasMoveOns) return;
+        auto moveOns = Chat::moveOns.GetSize();
+        auto waits = Chat::waits.GetSize();
+        auto initPos = UI::GetCursorPos();
+        if (moveOns == 0) {
+            UI::Text("\\$888Move On: 0");
+        } else {
+            UI::Text("\\$3f3Move On: " + moveOns);
+        }
+        UI::SetCursorPos(initPos + vec2(150, 0));
+        if (waits == 0) {
+            UI::Text("\\$888Wait: 0");
+        } else {
+            UI::Text("\\$f33Wait: " + waits);
+        }
+    }
+
+    void DrawChatVotes() {
+        if (!Chat::HasVotes) return;
+        auto initPos = UI::GetCursorPos();
+        if (Chat::goodVotes == 0) {
+            UI::Text("\\$888" + Icons::ThumbsUp + ": 0");
+        } else {
+            UI::Text("\\$4b4" + Icons::ThumbsUp + ": " + Chat::goodVotes);
+        }
+        UI::SetCursorPos(initPos + vec2(150, 0));
+        if (Chat::badVotes == 0) {
+            UI::Text("\\$888" + Icons::ThumbsDown + ": 0");
+        } else {
+            UI::Text("\\$b44" + Icons::ThumbsDown + ": " + Chat::badVotes);
+        }
+    }
+
     void RenderNotRunning() {
         UI::Text("\\$f80Should never show!");
     }
