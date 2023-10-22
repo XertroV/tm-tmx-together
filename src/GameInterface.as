@@ -55,6 +55,73 @@ class GameInterface {
             DrawChatVotes();
         }
 
+#if DEPENDENCY_MLFEEDRACEDATA
+        UI::Separator();
+        DrawPlayerProgress();
+#endif
+    }
+
+    void DrawPlayerProgress() {
+        if (UI::CollapsingHeader("Current Runs")) {
+#if DEPENDENCY_MLFEEDRACEDATA
+            UI::Indent();
+
+            auto rd = MLFeed::GetRaceData_V4();
+            UI::ListClipper clip(rd.SortedPlayers_Race.Length);
+            if (UI::BeginTable("player-curr-runs", 4, UI::TableFlags::SizingStretchProp | UI::TableFlags::ScrollY)) {
+                UI::TableSetupColumn("name", UI::TableColumnFlags::WidthStretch);
+                UI::TableSetupColumn("cp", UI::TableColumnFlags::WidthStretch);
+                UI::TableSetupColumn("time", UI::TableColumnFlags::WidthStretch);
+                UI::TableSetupColumn("delta", UI::TableColumnFlags::WidthStretch);
+                // UI::TableHeadersRow();
+
+                while (clip.Step()) {
+                    for (int i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
+                        auto p = rd.SortedPlayers_Race[i];
+                        UI::PushID(i);
+
+                        UI::TableNextRow();
+
+                        UI::TableNextColumn();
+                        UI::Text(p.Name);
+                        UI::TableNextColumn();
+                        UI::Text(tostring(p.CpCount));
+                        UI::TableNextColumn();
+                        UI::Text(Time::Format(p.LastCpOrRespawnTime));
+                        UI::TableNextColumn();
+                        auto best = p.BestRaceTimes;
+                        if (best !is null && p.CpCount > 0 && p.CpCount <= int(best.Length)) {
+                            bool isBehind = false;
+                            auto cpBest = int(best[p.CpCount - 1]);
+                            auto lastCpTimeVirtual = p.LastCpOrRespawnTime;
+                            // account for current race time via next cp
+                            if (p.CpCount < int(best.Length)) {
+                                if (p.CurrentRaceTime > best[p.CpCount]) {
+                                    isBehind = true;
+                                    lastCpTimeVirtual = p.CurrentRaceTime;
+                                    cpBest = best[p.CpCount];
+                                }
+                            }
+                            string time = ((lastCpTimeVirtual < cpBest && !isBehind) ? "\\$48f-" : "\\$f84+")
+                                + Time::Format(Math::Abs(lastCpTimeVirtual - cpBest))
+                                + (isBehind ? " (*)" : "");
+                            UI::Text(time);
+                        } else {
+                            UI::Text("\\$888-:--.---");
+                        }
+
+                        UI::PopID();
+                    }
+                }
+
+                UI::EndTable();
+            }
+            UI::Unindent();
+#else
+            // shouldn't show up, but w/e
+            UI::Text("MLFeed required.");
+#endif
+        }
     }
 
     void DrawChatMoveOns() {
