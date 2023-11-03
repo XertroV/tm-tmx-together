@@ -172,3 +172,33 @@ void OnDisabled() { _Unload(); }
 void _Unload() {
     Chat::Unload();
 }
+
+
+
+
+int GetNbPlayers() {
+    auto cp = GetApp().CurrentPlayground;
+    return cp is null ? 0 : cp.Players.Length;
+}
+
+uint lastPgStartTime = 0;
+
+void AwaitRulesStart() {
+    auto app = GetApp();
+    while (app.CurrentPlayground !is null) {
+        auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
+        if (cp.Arena.Rules.RulesStateStartTime < PlaygroundNow()) {
+            lastPgStartTime = cp.Arena.Rules.RulesStateStartTime;
+            print("set last pg start time: " + lastPgStartTime);
+            break;
+        }
+        yield();
+    }
+}
+
+uint PlaygroundNow() {
+    auto app = GetApp();
+    auto pg = app.Network.PlaygroundClientScriptAPI;
+    if (pg is null) return uint(-1);
+    return uint(pg.GameTime);
+}

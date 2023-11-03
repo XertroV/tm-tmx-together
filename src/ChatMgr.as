@@ -89,6 +89,7 @@ namespace Chat {
         moveOns[login] = true;
         if (waits.Exists(login)) waits.Delete(login);
         statusMsgs.AddGameEvent(TTEventMoveOn(e.Entry.SenderDisplayName));
+        startnew(CheckForAllMoveOn);
     }
     void OnWait(NGameScriptChat_SEvent_NewEntry@ e) {
         auto login = string(e.Entry.SenderLogin);
@@ -96,6 +97,8 @@ namespace Chat {
         if (moveOns.Exists(login)) moveOns.Delete(login);
         statusMsgs.AddGameEvent(TTEventWait(e.Entry.SenderDisplayName));
     }
+
+
     void OnVote(NGameScriptChat_SEvent_NewEntry@ e, int amt) {
         auto login = string(e.Entry.SenderLogin);
         SubVotes(login);
@@ -112,5 +115,15 @@ namespace Chat {
             if (prevVote > 0) goodVotes -= prevVote;
             else badVotes -= prevVote;
         }
+    }
+}
+
+
+
+void CheckForAllMoveOn() {
+    if (!S_AutoMoveOnWhenAll1s) return;
+    if (Chat::moveOns.GetSize() == GetNbPlayers()) {
+        trace('automatically moving on...');
+        startnew(State::AutoMoveOn);
     }
 }

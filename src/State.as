@@ -60,6 +60,8 @@ namespace State {
         lastTmxId = S_LastTmxID;
         loadNextId = S_LastTmxID;
         currState = GameState::Running;
+        auto cp = cast<CSmArenaClient>(GetApp().CurrentPlayground);
+        if (cp !is null) startnew(AwaitRulesStart);
     }
 
     void HardReset() {
@@ -84,18 +86,22 @@ namespace State {
         return int(clubId) == si.clubId && int(roomId) == si.roomId;
     }
 
+    void UpdateNextMap() {
+        status = "Loading next TMX map...";
+        auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID);
+        lastLoadedId = loadNextId = resp['next'];
+        loadNextUid = resp['next_uid'];
+        Chat::SendGoodMessage("Next Map ID: " + loadNextId);
+    }
+
     uint lastLoadedId = S_LastTmxID;
     uint loadNextId = S_LastTmxID;
     string loadNextUid;
     void LoadNextTmxMap() {
         currState = GameState::Loading;
         try {
-            status = "Loading next TMX map...";
             Chat::SendWarningMessage("Loading Next Map...");
-            auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID);
-            lastLoadedId = loadNextId = resp['next'];
-            loadNextUid = resp['next_uid'];
-            Chat::SendGoodMessage("Next Map ID: " + loadNextId);
+            UpdateNextMap();
             if (!CheckUploadedToNadeo()) {
                 Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
                 LoadNextTmxMap();
@@ -127,15 +133,36 @@ namespace State {
         return true;
     }
 
+    void AutoMoveOn() {
+        if (GetApp().CurrentPlayground is null || currState == GameState::Loading) return;
+        currState = GameState::Loading;
+        Chat::SendWarningMessage("Setting Next Map to load in " + S_AutoMoveOnInSeconds + " seconds.");
+        UpdateNextMap();
+        if (!CheckUploadedToNadeo()) {
+            Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
+            AutoMoveOn();
+            return;
+        }
+        auto now = PlaygroundNow();
+        auto currDuration = (now - lastPgStartTime) / 1000;
+        // print('currDuration: ' + currDuration);
+        auto setTimeout = currDuration + S_AutoMoveOnInSeconds;
+        mapTimeLimitWithExt = setTimeout;
+        SetNextRoomTA(setTimeout, S_AutoMoveOnInSeconds);
+    }
+
     void InitializeRoom() {
         SetNextRoomTA();
     }
 
+    int lastSetNextMap;
     int mapTimeLimitWithExt = 300;
-    void SetNextRoomTA() {
+    void SetNextRoomTA(uint timelimit = 1, uint waitSeconds = 1) {
+        int myLastSetNextMap = Time::Now;
+        lastSetNextMap = myLastSetNextMap;
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
-            .SetTimeLimit(1)
+            .SetTimeLimit(timelimit)
             .SetChatTime(0)
             .SetMaps({loadNextUid})
             .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
@@ -143,9 +170,14 @@ namespace State {
             .SetMode(BRM::GameMode::TimeAttack);
 
         auto resp = builder.SaveRoom();
-        status += "\nSaved Room maps + time limit... Waiting 5s";
+        uint waitTime = 5 + waitSeconds;
+        status += "\nSaved Room maps + time limit... Waiting " + waitTime + " s";
         log_trace('Room request returned: ' + Json::Write(resp));
-        sleep(Math::Max(5000, 1 * 1000));
+        if (waitSeconds > 1) currState = GameState::Running;
+        sleep(1000 * waitTime);
+        // exit if another set next room has been triggered in the mean time
+        if (lastSetNextMap != myLastSetNextMap) return;
+        currState = GameState::Loading;
         int limit = S_DefaultTimeLimit;
         mapTimeLimitWithExt = limit;
         builder.SetTimeLimit(limit);
@@ -157,6 +189,7 @@ namespace State {
         currState = GameState::Running;
         S_LastTmxID = loadNextId;
         Meta::SaveSettings();
+        sleep(3000);
         AwaitRulesStart();
     }
 
@@ -168,6 +201,7 @@ namespace State {
     }
     void ModifyTimeLimit(int extraTime) {
         if (mapTimeLimitWithExt < 0) return;
+        lastSetNextMap = Time::Now;
         currState = GameState::Loading;
         if (extraTime < 0) {
             mapTimeLimitWithExt = -1;
@@ -184,6 +218,7 @@ namespace State {
     }
 
     void RunBackToLobbyMap() {
+        lastSetNextMap = Time::Now;
         status = "Loading Map " + S_LobbyMapUID;
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
             .SetTimeLimit(S_TimeLimitOnEndMap)
@@ -220,27 +255,7 @@ namespace State {
             // loaded correct map
             break;
         }
-    }
-
-    uint lastPgStartTime = 0;
-
-    void AwaitRulesStart() {
-        auto app = GetApp();
-        while (app.CurrentPlayground !is null) {
-            auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
-            if (cp.Arena.Rules.RulesStateStartTime <= PlaygroundNow()) {
-                lastPgStartTime = Time::Now;
-                break;
-            }
-            yield();
-        }
-    }
-
-    uint PlaygroundNow() {
-        auto app = GetApp();
-        auto pg = app.Network.ClientManiaAppPlayground;
-        if (pg is null) return uint(-1);
-        return uint(pg.Now);
+        trace('loaded next map');
     }
 }
 

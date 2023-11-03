@@ -124,8 +124,7 @@ class GameInterface {
 
     void DrawChatMoveOns() {
         if (!Chat::HasMoveOns) return;
-        auto cp = GetApp().CurrentPlayground;
-        auto nbPlayers = cp is null ? 0 : cp.Players.Length;
+        auto nbPlayers = GetNbPlayers();
         auto moveOns = Chat::moveOns.GetSize();
         auto waits = Chat::waits.GetSize();
         auto initPos = UI::GetCursorPos();
