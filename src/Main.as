@@ -6,6 +6,8 @@ bool HaveDeps = true;
 bool HaveDeps = false;
 #endif
 
+
+
 void Main() {
     UserHasPermissions = Permissions::CreateClub();
     if (!HaveDeps) {

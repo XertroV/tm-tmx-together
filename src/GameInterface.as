@@ -124,19 +124,21 @@ class GameInterface {
 
     void DrawChatMoveOns() {
         if (!Chat::HasMoveOns) return;
+        auto cp = GetApp().CurrentPlayground;
+        auto nbPlayers = cp is null ? 0 : cp.Players.Length;
         auto moveOns = Chat::moveOns.GetSize();
         auto waits = Chat::waits.GetSize();
         auto initPos = UI::GetCursorPos();
         if (moveOns == 0) {
-            UI::Text("\\$888Move On: 0");
+            UI::Text("\\$888Move On: 0 / " + nbPlayers);
         } else {
-            UI::Text("\\$3f3Move On: " + moveOns);
+            UI::Text("\\$3f3Move On: " + moveOns + " / " + nbPlayers);
         }
         UI::SetCursorPos(initPos + vec2(150, 0));
         if (waits == 0) {
-            UI::Text("\\$888Wait: 0");
+            UI::Text("\\$888Wait: 0 / " + nbPlayers);
         } else {
-            UI::Text("\\$f33Wait: " + waits);
+            UI::Text("\\$f33Wait: " + waits + " / " + nbPlayers);
         }
     }
 
