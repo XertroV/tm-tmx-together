@@ -85,13 +85,8 @@ class SetupScreen {
         isDev = true;
 #endif
 #if DEPENDENCY_MAPINFO || DEV
-        if (isDev || Meta::GetPluginFromID("MapInfo").Enabled) {
+        if (isDev || Meta::GetPluginFromID("mapinfo").Enabled) {
             auto data = MapInfo::GetCurrentMapInfo();
-            auto count = 0;
-            while (data is null && count < 10) {
-                sleep(1000);
-                @data = MapInfo::GetCurrentMapInfo();
-            }
             if (data is null) return;
             if (data.TrackID == int(S_LastTmxID)) {
                 State::ResumeGame();
