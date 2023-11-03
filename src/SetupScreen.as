@@ -72,7 +72,7 @@ class SetupScreen {
             }
 
             if (correctRoom) {
-#if DEPENDENCY_MAPINFO || DEV
+#if DEPENDENCY_MAPINFO || DEPENDENCY_MAP_INFO_DEV
                 startnew(CoroutineFunc(CheckMapInfoForCorrectMap));
 #endif
             }
@@ -80,18 +80,25 @@ class SetupScreen {
     }
 
     void CheckMapInfoForCorrectMap() {
-        bool isDev = false;
-#if DEV
-        isDev = true;
-#endif
-#if DEPENDENCY_MAPINFO || DEV
-        if (isDev || Meta::GetPluginFromID("mapinfo").Enabled) {
+#if DEPENDENCY_MAPINFO || DEPENDENCY_MAP_INFO_DEV
+        if (CheckMapInfoEnabled()) {
             auto data = MapInfo::GetCurrentMapInfo();
             if (data is null) return;
             if (data.TrackID == int(S_LastTmxID)) {
+                trace('resuming');
                 State::ResumeGame();
             }
         }
+#endif
+    }
+
+    bool CheckMapInfoEnabled() {
+#if DEPENDENCY_MAPINFO
+        return Meta::GetPluginFromID("mapinfo").Enabled;
+#elif DEPENDENCY_MAP_INFO_DEV
+        return Meta::GetPluginFromID("map-info-dev").Enabled;
+#else
+        return false;
 #endif
     }
 

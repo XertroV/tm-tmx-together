@@ -6,7 +6,8 @@ bool HaveDeps = true;
 bool HaveDeps = false;
 #endif
 
-
+StatusMsgUI@ statusMsgs;
+int nvgFont = 0;
 
 void Main() {
     UserHasPermissions = Permissions::CreateClub();
@@ -18,6 +19,8 @@ void Main() {
         NotifyError("Missing permissions! You need club access.");
         return;
     }
+    @statusMsgs = StatusMsgUI();
+    nvgFont = nvg::LoadFont("DroidSans-Bold.ttf");
     startnew(MainCoro);
     startnew(ClearTaskCoro);
     startnew(Chat::ChatCoro).WithRunContext(Meta::RunContext::GameLoop);
@@ -76,10 +79,18 @@ void RenderMenu() {
 
 int MainWindowFlags = UI::WindowFlags::AlwaysAutoResize | UI::WindowFlags::NoCollapse;
 
+float lastDt = 1.;
+void Update(float dt) {
+    lastDt = dt;
+}
+
 void Render() {
     if (!ShowWindow) return;
     if (!UI::IsOverlayShown() && !S_ShowIfOverlayHidden) return;
     if (!UI::IsGameUIVisible() && !S_ShowIfUIHidden) return;
+
+    statusMsgs.RenderUpdate(lastDt);
+
     vec2 size = vec2(450, 300);
     vec2 wpos = (vec2(Draw::GetWidth(), Draw::GetHeight()) - size) / 2.;
     UI::SetNextWindowSize(int(size.x), int(size.y), UI::Cond::FirstUseEver);

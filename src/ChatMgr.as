@@ -1,8 +1,17 @@
 namespace Chat {
     void SendMessage(const string &in msg) {
+        if (!S_SendChatUpdateMsgs) return;
         auto cp = GetApp().CurrentPlayground;
         if (cp is null || cp.Interface is null) return;
         cp.Interface.ChatEntry = msg;
+    }
+
+    void SendGoodMessage(const string &in msg) {
+        SendMessage("$o$i$4f4" + msg);
+    }
+
+    void SendWarningMessage(const string &in msg) {
+        SendMessage("$o$i$f80" + msg);
     }
 
     NGameScriptChat_SHistory@ hist;
@@ -79,11 +88,13 @@ namespace Chat {
         auto login = string(e.Entry.SenderLogin);
         moveOns[login] = true;
         if (waits.Exists(login)) waits.Delete(login);
+        statusMsgs.AddGameEvent(TTEventMoveOn(e.Entry.SenderDisplayName));
     }
     void OnWait(NGameScriptChat_SEvent_NewEntry@ e) {
         auto login = string(e.Entry.SenderLogin);
         waits[login] = true;
         if (moveOns.Exists(login)) moveOns.Delete(login);
+        statusMsgs.AddGameEvent(TTEventWait(e.Entry.SenderDisplayName));
     }
     void OnVote(NGameScriptChat_SEvent_NewEntry@ e, int amt) {
         auto login = string(e.Entry.SenderLogin);

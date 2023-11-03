@@ -91,13 +91,13 @@ namespace State {
         currState = GameState::Loading;
         try {
             status = "Loading next TMX map...";
-            Chat::SendMessage("\\$o\\$i\\$f80Loading Next Map...");
+            Chat::SendWarningMessage("Loading Next Map...");
             auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID);
             lastLoadedId = loadNextId = resp['next'];
             loadNextUid = resp['next_uid'];
-            Chat::SendMessage("\\$o\\$i\\$4f4Next Map ID: " + loadNextId);
+            Chat::SendGoodMessage("Next Map ID: " + loadNextId);
             if (!CheckUploadedToNadeo()) {
-                Chat::SendMessage("\\$o\\$i\\$f80Map not uploaded to Nadeo! Skipping past " + loadNextId);
+                Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
                 LoadNextTmxMap();
                 return;
             }
@@ -157,6 +157,7 @@ namespace State {
         currState = GameState::Running;
         S_LastTmxID = loadNextId;
         Meta::SaveSettings();
+        AwaitRulesStart();
     }
 
     void RemoveTimeLimit() {
@@ -219,6 +220,27 @@ namespace State {
             // loaded correct map
             break;
         }
+    }
+
+    uint lastPgStartTime = 0;
+
+    void AwaitRulesStart() {
+        auto app = GetApp();
+        while (app.CurrentPlayground !is null) {
+            auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
+            if (cp.Arena.Rules.RulesStateStartTime <= PlaygroundNow()) {
+                lastPgStartTime = Time::Now;
+                break;
+            }
+            yield();
+        }
+    }
+
+    uint PlaygroundNow() {
+        auto app = GetApp();
+        auto pg = app.Network.ClientManiaAppPlayground;
+        if (pg is null) return uint(-1);
+        return uint(pg.Now);
     }
 }
 

@@ -95,7 +95,7 @@ class GameInterface {
                             auto cpBest = p.CpCount == 0 ? 0 : int(best[p.CpCount - 1]);
                             auto lastCpTimeVirtual = p.LastCpOrRespawnTime;
                             // account for current race time via next cp
-                            if (p.CpCount < int(best.Length) && p.CurrentRaceTime > best[p.CpCount]) {
+                            if (p.CpCount < int(best.Length) && p.CurrentRaceTime > int(best[p.CpCount])) {
                                 isBehind = true;
                                 lastCpTimeVirtual = p.CurrentRaceTime;
                                 cpBest = best[p.CpCount];

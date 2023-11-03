@@ -42,3 +42,10 @@ LogLevel S_LogLevel = LogLevel::Trace;
 #else
 LogLevel S_LogLevel = LogLevel::Info;
 #endif
+
+
+[Setting category="Status Messages" name="Show Vote Msgs on Screen"]
+bool S_ShowVotesOnScreen = true;
+
+[Setting category="Status Messages" name="Send Chat Update Messages"]
+bool S_SendChatUpdateMsgs = true;
