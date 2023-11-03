@@ -33,6 +33,10 @@ class GameInterface {
         if (UI::Button("Next")) {
             startnew(State::LoadNextTmxMap);
         }
+        UI::SetCursorPos(cp + vec2(80, 0));
+        if (UI::Button("Next in " + S_AutoMoveOnInSeconds + " s")) {
+            startnew(State::AutoMoveOn);
+        }
         UI::SetCursorPos(cp + vec2(210, 0));
         if (UI::Button("To Lobby")) {
             startnew(State::BackToLobby);
