@@ -202,3 +202,13 @@ uint PlaygroundNow() {
     if (pg is null) return uint(-1);
     return uint(pg.GameTime);
 }
+
+string GetMedalStringForTime(uint time) {
+    auto map = GetApp().RootMap;
+    if (map is null) return "No Map";
+    if (time <= map.TMObjective_AuthorTime) return "AT";
+    if (time <= map.TMObjective_GoldTime) return "Gold";
+    if (time <= map.TMObjective_SilverTime) return "Silver";
+    if (time <= map.TMObjective_BronzeTime) return "Bronze";
+    return "No Medal";
+}

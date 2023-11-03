@@ -52,7 +52,49 @@ namespace State {
         lastTmxId = S_LastTmxID;
         currState = GameState::Initializing;
         startnew(LoadNextTmxMap);
+        startnew(WatchForPodium);
     }
+
+    bool podiumWatchRunning = false;
+    void WatchForPodium() {
+        if (podiumWatchRunning) return;
+        podiumWatchRunning = true;
+        while (currState != GameState::NotRunning) {
+            auto app = GetApp();
+            auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
+            if (cp !is null && cp.GameTerminals.Length > 0 && cp.GameTerminals[0].UISequence_Current == SGamePlaygroundUIConfig::EUISequence::Podium) {
+                OnPodiumSequence();
+                // standard podium is 7s
+                sleep(15000);
+            }
+            yield();
+        }
+        podiumWatchRunning = false;
+    }
+
+    void OnPodiumSequence() {
+#if DEPENDENCY_MLFEEDRACEDATA
+        auto rd = MLFeed::GetRaceData_V4();
+        if (rd.SortedPlayers_TimeAttack.Length == 0) return;
+        auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(rd.SortedPlayers_TimeAttack[0]);
+        string msg = "gz " + bestPlayer.Name + " (" + Time::Format(bestPlayer.BestTime) + " - " + GetMedalStringForTime(bestPlayer.BestTime) + ")";
+        if (bestPlayer.WebServicesUserId == "a2f0675a-8d25-4db7-9be5-d2ce8902b8cc") { // tyler mayhem
+            msg = "Tyler_Mayhem is really cool";
+        } else if (bestPlayer.WebServicesUserId == "73fbc796-2a6f-472f-a130-818ab5ee4618") { // lakanta
+            msg = "gz Lakanta! Hopefully not last. lakant2Speed lakant2Speed lakant2Speed";
+        }
+        Chat::SendGoodMessage(msg);
+#endif
+    }
+
+    // void AwaitNotPodium() {
+    //     CGamePlayground@ cp;
+    //     while ((@cp = GetApp().CurrentPlayground) !is null) {
+    //         if (cp.GameTerminals.Length == 0) return;
+    //         if (cp.GameTerminals[0].UISequence_Current)
+    //         yield();
+    //     }
+    // }
 
     void ResumeGame() {
         clubId = S_ClubID;
@@ -62,6 +104,7 @@ namespace State {
         currState = GameState::Running;
         auto cp = cast<CSmArenaClient>(GetApp().CurrentPlayground);
         if (cp !is null) startnew(AwaitRulesStart);
+        startnew(WatchForPodium);
     }
 
     void HardReset() {
