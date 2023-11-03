@@ -91,10 +91,13 @@ namespace State {
         currState = GameState::Loading;
         try {
             status = "Loading next TMX map...";
+            Chat::SendMessage("\\$o\\$i\\$f80Loading Next Map...");
             auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID);
             lastLoadedId = loadNextId = resp['next'];
             loadNextUid = resp['next_uid'];
+            Chat::SendMessage("\\$o\\$i\\$4f4Next Map ID: " + loadNextId);
             if (!CheckUploadedToNadeo()) {
+                Chat::SendMessage("\\$o\\$i\\$f80Map not uploaded to Nadeo! Skipping past " + loadNextId);
                 LoadNextTmxMap();
                 return;
             }

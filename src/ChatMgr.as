@@ -1,4 +1,10 @@
 namespace Chat {
+    void SendMessage(const string &in msg) {
+        auto cp = GetApp().CurrentPlayground;
+        if (cp is null || cp.Interface is null) return;
+        cp.Interface.ChatEntry = msg;
+    }
+
     NGameScriptChat_SHistory@ hist;
     void ChatCoro() {
         while (true) {
