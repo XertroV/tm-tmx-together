@@ -189,7 +189,11 @@ void AwaitRulesStart() {
         auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
         if (cp.GameTerminals.Length == 0) continue;
         if (cp.GameTerminals[0].UISequence_Current != SGamePlaygroundUIConfig::EUISequence::Playing) continue;
-        if (cp.Arena.Rules.RulesStateStartTime < PlaygroundNow()) {
+        auto player = cast<CSmPlayer>(cp.GameTerminals[0].ControlledPlayer);
+        if (player is null) continue;
+        auto pgNow = PlaygroundNow();
+        if (int(player.StartTime) < 0 || player.StartTime > pgNow) continue;
+        if (cp.Arena.Rules.RulesStateStartTime < pgNow) {
             lastPgStartTime = cp.Arena.Rules.RulesStateStartTime;
             print("set last pg start time: " + lastPgStartTime);
             break;
