@@ -89,6 +89,7 @@ void Render() {
     if (!UI::IsOverlayShown() && !S_ShowIfOverlayHidden) return;
     if (!UI::IsGameUIVisible() && !S_ShowIfUIHidden) return;
 
+    DrawPlayerMedalCounts();
     statusMsgs.RenderUpdate(lastDt);
 
     vec2 size = vec2(450, 300);
@@ -233,6 +234,9 @@ string GetMapUid() {
     return map is null ? "" : map.EdChallengeId;
 }
 
+enum Medal {
+    Author = 0, Gold = 1, Silver, Bronze, NoMedal
+}
 
 string GetMedalStringForTime(uint time) {
     auto map = GetApp().RootMap;
@@ -242,4 +246,13 @@ string GetMedalStringForTime(uint time) {
     if (time <= map.TMObjective_SilverTime) return "Silver";
     if (time <= map.TMObjective_BronzeTime) return "Bronze";
     return "No Medal";
+}
+Medal GetMedalForTime(uint time) {
+    auto map = GetApp().RootMap;
+    if (map is null) return Medal::NoMedal;
+    if (time <= map.TMObjective_AuthorTime) return Medal::Author;
+    if (time <= map.TMObjective_GoldTime) return Medal::Gold;
+    if (time <= map.TMObjective_SilverTime) return Medal::Silver;
+    if (time <= map.TMObjective_BronzeTime) return Medal::Bronze;
+    return Medal::NoMedal;
 }
