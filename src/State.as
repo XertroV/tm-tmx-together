@@ -180,7 +180,8 @@ namespace State {
                 sleep(timeLeft - 9000);
                 timeLeft = timeLeft - (Time::Now - pre);
             }
-            SetNextRoomTA(noTimeLimit ? -1 : timelimit, timeLeft - 1);
+            timeLeft = Math::Max(6000, timeLeft) - 4500;
+            SetNextRoomTA(noTimeLimit ? -1 : timelimit, timeLeft / 1000);
         } catch {
             status = "Something went wrong getting the next map! " + getExceptionInfo();
             currState = GameState::Error;
