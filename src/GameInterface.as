@@ -75,7 +75,9 @@ class GameInterface {
         auto timeInMap = pgNow - rulesStart;
         auto msLeft = (rulesEnd - pgNow);
         auto noTimeLimit = msLeft > 2000000000;
+        auto linePos = UI::GetCursorPos();
         UI::Text(Icons::Map + " " + (timeInMap < 0 ? "--" : Time::Format(timeInMap, false)));
+        UI::SetCursorPos(linePos + vec2(UI::GetWindowContentRegionWidth() / 2., 0));
         UI::Text(Icons::ClockO + " " + (noTimeLimit ? "--" : Time::Format(msLeft + 1000, false)));
         // between 9 and 10s before changing maps
         bool triggerNextMapSaveWindow = 9000 < msLeft && msLeft < 10000;

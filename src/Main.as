@@ -228,6 +228,10 @@ uint GetRulesEndTime() {
     return uint(cp.Arena.Rules.RulesStateEndTime);
 }
 
+string GetMapUid() {
+    auto map = GetApp().RootMap;
+    return map is null ? "" : map.EdChallengeId;
+}
 
 
 string GetMedalStringForTime(uint time) {

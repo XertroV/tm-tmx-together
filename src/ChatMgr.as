@@ -62,6 +62,7 @@ namespace Chat {
         votes.DeleteAll();
         goodVotes = 0;
         badVotes = 0;
+        voteTriggeredForUid = "";
     }
 
     bool get_HasInfo() {
@@ -119,10 +120,11 @@ namespace Chat {
 }
 
 
-
+string voteTriggeredForUid;
 void CheckForAllMoveOn() {
     if (!S_AutoMoveOnWhenAll1s) return;
-    if (Chat::moveOns.GetSize() == GetNbPlayers()) {
+    if (Chat::moveOns.GetSize() == GetNbPlayers() && voteTriggeredForUid != GetMapUid()) {
+        voteTriggeredForUid = GetMapUid();
         trace('automatically moving on...');
         startnew(State::AutoMoveOn);
     }
