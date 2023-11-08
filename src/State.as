@@ -387,7 +387,7 @@ namespace State {
     // }
 
 
-auto pmcPad = vec2(5.);
+auto pmcPad = vec2(15., 5.);
 
 class PlayerMedalCount {
     string name;
