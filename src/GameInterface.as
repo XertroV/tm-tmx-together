@@ -59,10 +59,29 @@ class GameInterface {
             DrawChatVotes();
         }
 
+        UI::Separator();
+        DrawTaTimeSpentAndLeft();
+
 #if DEPENDENCY_MLFEEDRACEDATA
         UI::Separator();
         DrawPlayerProgress();
 #endif
+    }
+
+    void DrawTaTimeSpentAndLeft() {
+        auto pgNow = int64(PlaygroundNow());
+        auto rulesStart = int64(GetRulesStartTime());
+        auto rulesEnd = int64(GetRulesEndTime());
+        auto timeInMap = pgNow - rulesStart;
+        auto msLeft = (rulesEnd - pgNow);
+        auto noTimeLimit = msLeft > 2000000000;
+        UI::Text(Icons::Map + " " + (timeInMap < 0 ? "--" : Time::Format(timeInMap, false)));
+        UI::Text(Icons::ClockO + " " + (noTimeLimit ? "--" : Time::Format(msLeft + 1000, false)));
+        // between 9 and 10s before changing maps
+        bool triggerNextMapSaveWindow = 9000 < msLeft && msLeft < 10000;
+        if (State::IsRunning && triggerNextMapSaveWindow) {
+            startnew(State::SetNextTmxMap);
+        }
     }
 
     void DrawPlayerProgress() {

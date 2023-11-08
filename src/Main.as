@@ -185,8 +185,10 @@ uint lastPgStartTime = 0;
 
 void AwaitRulesStart() {
     auto app = GetApp();
-    while (app.CurrentPlayground !is null) {
+    while (true) {
+        yield();
         auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
+        if (cp is null) continue;
         if (cp.GameTerminals.Length == 0) continue;
         if (cp.GameTerminals[0].UISequence_Current != SGamePlaygroundUIConfig::EUISequence::Playing) continue;
         auto player = cast<CSmPlayer>(cp.GameTerminals[0].ControlledPlayer);
@@ -195,12 +197,13 @@ void AwaitRulesStart() {
         if (int(player.StartTime) < 0 || player.StartTime > pgNow) continue;
         if (cp.Arena.Rules.RulesStateStartTime < pgNow) {
             lastPgStartTime = cp.Arena.Rules.RulesStateStartTime;
-            print("set last pg start time: " + lastPgStartTime);
+            trace("set last pg start time: " + lastPgStartTime);
             break;
         }
-        yield();
     }
 }
+
+// measured in ms
 
 uint PlaygroundNow() {
     auto app = GetApp();
@@ -208,6 +211,24 @@ uint PlaygroundNow() {
     if (pg is null) return uint(-1);
     return uint(pg.GameTime);
 }
+
+// measured in ms
+uint GetRulesStartTime() {
+    auto app = GetApp();
+    auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
+    if (cp is null || cp.Arena is null || cp.Arena.Rules is null) return uint(-1);
+    return uint(cp.Arena.Rules.RulesStateStartTime);
+}
+
+// measured in ms
+uint GetRulesEndTime() {
+    auto app = GetApp();
+    auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
+    if (cp is null || cp.Arena is null || cp.Arena.Rules is null) return uint(-1);
+    return uint(cp.Arena.Rules.RulesStateEndTime);
+}
+
+
 
 string GetMedalStringForTime(uint time) {
     auto map = GetApp().RootMap;
