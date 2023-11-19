@@ -228,7 +228,15 @@ namespace State {
     void AutoMoveOn() {
         if (GetApp().CurrentPlayground is null || currState == GameState::Loading) return;
         currState = GameState::Loading;
-        Chat::SendWarningMessage("Setting Next Map to load in " + S_AutoMoveOnInSeconds + " seconds.");
+        auto moveOnIn = S_AutoMoveOnInSeconds;
+        if (S_AutoMoveOnBasedOnAT) {
+            try {
+                moveOnIn = (GetApp().RootMap.ChallengeParameters.AuthorScore / 1000 + 11);
+            } catch {
+                NotifyWarning("Failed to get AT time for move on, defaulting to " + moveOnIn + ' seconds');
+            }
+        }
+        Chat::SendWarningMessage("Setting Next Map to load in " + moveOnIn + " seconds.");
         UpdateNextMap();
         if (!CheckUploadedToNadeo()) {
             Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
@@ -238,9 +246,9 @@ namespace State {
         auto now = PlaygroundNow();
         auto currDuration = (now - GetRulesStartTime()) / 1000;
         trace('AutoMoveOn, Current Map Duration: ' + currDuration);
-        auto setTimeout = currDuration + S_AutoMoveOnInSeconds;
+        auto setTimeout = currDuration + moveOnIn;
         mapTimeLimitWithExt = setTimeout;
-        SetNextRoomTA(setTimeout, S_AutoMoveOnInSeconds);
+        SetNextRoomTA(setTimeout, moveOnIn);
     }
 
     void InitializeRoom() {

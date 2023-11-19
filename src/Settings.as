@@ -49,6 +49,9 @@ bool S_AutoMoveOnWhenAll1s = true;
 [Setting category="General" name="Automatically Move On In (seconds)" min=0 max=240]
 uint S_AutoMoveOnInSeconds = 120;
 
+[Setting category="General" name="Where possible, move on in AT time + 10 seconds (overrides above)"]
+bool S_AutoMoveOnBasedOnAT = false;
+
 
 [Setting category="Status Messages" name="Show Vote Msgs on Screen"]
 bool S_ShowVotesOnScreen = true;
