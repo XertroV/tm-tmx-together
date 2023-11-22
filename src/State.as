@@ -455,7 +455,7 @@ void DrawPMCHeadings(vec2 &in pos, float nameWidth, float medalSpacing, float fo
 void DrawPlayerMedalCounts() {
     if (State::IsNotRunning) return;
     auto app = GetApp();
-    if (app.LoadProgress.State == EState::Disabled) return;
+    if (app.LoadProgress.State == NGameLoadProgress::EState::Disabled) return;
     // draw only when we're over the loading screen.
     auto keys = State::PlayerMedalCounts.GetKeys();
     float h = Draw::GetHeight();
