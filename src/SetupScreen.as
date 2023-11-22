@@ -70,6 +70,13 @@ class SetupScreen {
             if (UI::Button("Begin")) {
                 State::BeginGame();
             }
+            if (!badRoom) {
+                UI::SameLine();
+                if (UI::Button("Force Resume")) {
+                    startnew(State::ResumeGame);
+                }
+            }
+
 
             if (correctRoom) {
 #if DEPENDENCY_MAPINFO || DEPENDENCY_MAP_INFO_DEV

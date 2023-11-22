@@ -123,7 +123,7 @@ namespace Chat {
 string voteTriggeredForUid;
 void CheckForAllMoveOn() {
     if (!S_AutoMoveOnWhenAll1s) return;
-    if (Chat::moveOns.GetSize() == GetNbPlayers() && voteTriggeredForUid != GetMapUid()) {
+    if (int(Chat::moveOns.GetSize()) == GetNbPlayers() && voteTriggeredForUid != GetMapUid()) {
         voteTriggeredForUid = GetMapUid();
         trace('automatically moving on...');
         startnew(State::AutoMoveOn);

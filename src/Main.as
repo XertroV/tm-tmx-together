@@ -195,7 +195,7 @@ void AwaitRulesStart() {
         auto player = cast<CSmPlayer>(cp.GameTerminals[0].ControlledPlayer);
         if (player is null) continue;
         auto pgNow = PlaygroundNow();
-        if (int(player.StartTime) < 0 || player.StartTime > pgNow) continue;
+        if (player.StartTime < 0 || player.StartTime > int(pgNow)) continue;
         if (cp.Arena.Rules.RulesStateStartTime < pgNow) {
             lastPgStartTime = cp.Arena.Rules.RulesStateStartTime;
             trace("set last pg start time: " + lastPgStartTime);
