@@ -75,6 +75,13 @@ namespace Chat {
         return moveOns.GetSize() > 0 || waits.GetSize() > 0;
     }
 
+    string GetUserMoveOnWaitExtra(const string &in login) {
+        auto ret = "";
+        if (moveOns.Exists(login)) ret += "\\$3f3(1) ";
+        else if (waits.Exists(login)) ret += "\\$f80(1) ";
+        return ret;
+    }
+
     void CheckMsg(NGameScriptChat_SEvent_NewEntry@ e) {
         string text = string(wstring(e.Entry.Text)).Trim();
         if (text == "1") OnMoveOn(e);

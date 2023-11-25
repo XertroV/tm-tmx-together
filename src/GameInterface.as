@@ -102,13 +102,13 @@ class GameInterface {
 
                 while (clip.Step()) {
                     for (int i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
-                        auto p = rd.SortedPlayers_Race[i];
+                        auto p = cast<MLFeed::PlayerCpInfo_V4>(rd.SortedPlayers_Race[i]);
                         UI::PushID(i);
 
                         UI::TableNextRow();
 
                         UI::TableNextColumn();
-                        UI::Text(p.Name);
+                        UI::Text(Chat::GetUserMoveOnWaitExtra(p.Login) + p.Name);
                         UI::TableNextColumn();
                         UI::Text(tostring(p.CpCount));
                         UI::TableNextColumn();
