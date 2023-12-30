@@ -89,24 +89,22 @@ namespace State {
         CachePlayerMedals(rd);
     }
 
-    PlayerMedalCount@ GetPlayerMedalCountFor(const string &in wsid) {
-        if (PlayerMedalCounts.Exists(wsid)) {
-            return cast<PlayerMedalCount>(PlayerMedalCounts[wsid]);
+    PlayerMedalCount@ GetPlayerMedalCountFor(const string &in name, const string &in login) {
+        if (PlayerMedalCounts.Exists(login)) {
+            return cast<PlayerMedalCount>(PlayerMedalCounts[login]);
         }
-        return null;
+        return AddNewPMC(name, login);
     }
 
     void CachePlayerMedals(const MLFeed::HookRaceStatsEventsBase_V4@ rd) {
         for (uint i = 0; i < rd.sortedPlayers_TimeAttack.Length; i++) {
             auto player = cast<MLFeed::PlayerCpInfo_V4>(rd.sortedPlayers_TimeAttack[i]);
-            if (!PlayerMedalCounts.Exists(player.WebServicesUserId)) {
-                auto pmc = PlayerMedalCount(player.Name);
-                @PlayerMedalCounts[player.WebServicesUserId] = pmc;
-                SortedPlayerMedals.InsertLast(pmc);
-                NewestPlayerMedals.InsertAt(0, pmc);
+            if (!PlayerMedalCounts.Exists(player.Login)) {
+                AddNewPMC(player.Name, player.Login);
             }
-            auto pmc = cast<PlayerMedalCount>(PlayerMedalCounts[player.WebServicesUserId]);
+            auto pmc = cast<PlayerMedalCount>(PlayerMedalCounts[player.Login]);
             if (pmc is null) continue;
+            // todo: check if WR, if so, add to medal 0
             pmc.AddMedal(GetMedalForTime(uint(player.BestTime)));
         }
         startnew(UpdateSortedPlayerMedals);
@@ -115,11 +113,21 @@ namespace State {
     void OnPodiumSequence() {}
 #endif
 
+    PlayerMedalCount@ AddNewPMC(const string &in name, const string &in login) {
+        if (PlayerMedalCounts.Exists(login)) return GetPlayerMedalCountFor(name, login);
+        auto pmc = PlayerMedalCount(name, login);
+        @PlayerMedalCounts[login] = pmc;
+        SortedPlayerMedals.InsertLast(pmc);
+        NewestPlayerMedals.InsertAt(0, pmc);
+        return pmc;
+    }
+
     PlayerMedalCount@[] SortedPlayerMedals;
     PlayerMedalCount@[] NewestPlayerMedals;
 
     void UpdateSortedPlayerMedals() {
         SortedPlayerMedals.SortNonConst(function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
+            if (a.NbWRs != b.NbWRs) return a.NbWRs > b.NbWRs;
             if (a.NbATs != b.NbATs) return a.NbATs > b.NbATs;
             if (a.NbGolds != b.NbGolds) return a.NbGolds > b.NbGolds;
             if (a.NbSilvers != b.NbSilvers) return a.NbSilvers > b.NbSilvers;
@@ -434,48 +442,104 @@ auto pmcPad = vec2(15., 5.);
 
 class PlayerMedalCount {
     string name;
-    uint[] medalCounts = {0, 0, 0, 0, 0};
+    string login;
+    uint[] medalCounts = {0, 0, 0, 0, 0, 0};
+    uint[] lifetimeMedalCounts = {0, 0, 0, 0, 0, 0};
     uint mapCount = 0;
     vec4 col = vec4(1);
     uint firstSeen;
     uint lastSeen;
+    string filename;
 
-    PlayerMedalCount(const string &in name) {
+    PlayerMedalCount(const string &in name, const string &in login) {
+        this.filename = IO::FromStorageFolder("users/" + login + ".json");
         this.name = name;
-        firstSeen = Time::Now;
+        this.login = login;
+        firstSeen = Time::Stamp;
         lastSeen = firstSeen;
+        // startnew(CoroutineFunc(FromJsonFile));
+        FromJsonFile();
     }
 
-    uint get_NbATs() {
+    Json::Value@ ToJson() {
+        auto ret = Json::Object();
+        ret['name'] = name;
+        ret['login'] = login;
+        ret['medals'] = lifetimeMedalCounts.ToJson();
+        ret['mapCount'] = mapCount;
+        ret['firstSeen'] = firstSeen;
+        ret['lastSeen'] = lastSeen;
+        return ret;
+    }
+
+    void ToJsonFile() {
+        Json::ToFile(filename, ToJson());
+    }
+
+    void FromJson(Json::Value@ j) {
+        if (j.GetType() != Json::Type::Object) throw('not a json obj');
+        mapCount = j['mapCount'];
+        lastSeen = j['lastSeen'];
+        firstSeen = j['firstSeen'];
+        mapCount = j['mapCount'];
+        auto mc = j['medals'];
+        for (uint i = 0; i < mc.Length; i++) {
+            if (i >= lifetimeMedalCounts.Length) lifetimeMedalCounts.InsertLast(mc[i]);
+            else lifetimeMedalCounts[i] = mc[i];
+        }
+    }
+
+    void FromJsonFile() {
+        if (!IO::FileExists(filename)) {
+            return;
+        }
+        auto j = Json::FromFile(filename);
+        FromJson(j);
+    }
+
+    uint get_NbWRs() {
         return medalCounts[0];
     }
-    uint get_NbGolds() {
+    uint get_NbATs() {
         return medalCounts[1];
     }
-    uint get_NbSilvers() {
+    uint get_NbGolds() {
         return medalCounts[2];
     }
-    uint get_NbBronzes() {
+    uint get_NbSilvers() {
         return medalCounts[3];
     }
-    uint get_NbNoMedals() {
+    uint get_NbBronzes() {
         return medalCounts[4];
+    }
+    uint get_NbNoMedals() {
+        return medalCounts[5];
     }
 
     void AddMedal(Medal m) {
         mapCount++;
         medalCounts[int(m)]++;
-        lastSeen = Time::Now;
+        lifetimeMedalCounts[int(m)]++;
+        lastSeen = Time::Stamp;
+        startnew(CoroutineFunc(ToJsonFile));
     }
 
     string GetSummaryStr() {
-        return "{name} ( $<$o$s$<$8f4{at}$> / $<$fd0{gold}$> / $<$abb{silver}$> / $<$c73{bronze}$> / $<$fff{noMedal}$>$> )"
-            .Replace("{name}", name)
-            .Replace("{at}", tostring(NbATs))
-            .Replace("{gold}", tostring(NbGolds))
-            .Replace("{silver}", tostring(NbSilvers))
-            .Replace("{bronze}", tostring(NbBronzes))
-            .Replace("{noMedal}", tostring(NbNoMedals))
+        return GenerateSummaryStr(medalCounts);
+    }
+    string GetLifetimeSummaryStr() {
+        return GenerateSummaryStr(lifetimeMedalCounts, "All Time:");
+    }
+
+    string GenerateSummaryStr(uint[]@ mc, const string &in nameReplacement = "") {
+        return "{name} ( $<$o$s$<$f19{wr}$> / $<$8f4{at}$> / $<$fd0{gold}$> / $<$abb{silver}$> / $<$c73{bronze}$> / $<$fff{noMedal}$>$> )"
+            .Replace("{name}", nameReplacement.Length == 0 ? name : nameReplacement)
+            .Replace("{wr}", tostring(mc[0]))
+            .Replace("{at}", tostring(mc[1]))
+            .Replace("{gold}", tostring(mc[2]))
+            .Replace("{silver}", tostring(mc[3]))
+            .Replace("{bronze}", tostring(mc[4]))
+            .Replace("{noMedal}", tostring(mc[5]))
         ;
     }
 

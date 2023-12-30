@@ -25,6 +25,10 @@ void Main() {
     startnew(ClearTaskCoro);
     startnew(Chat::ChatCoro).WithRunContext(Meta::RunContext::GameLoop);
     startnew(LoadSavedCommands);
+
+    if (!IO::FolderExists(IO::FromStorageFolder("users/"))) {
+        IO::CreateFolder(IO::FromStorageFolder("users"));
+    }
 }
 
 string lastMap;
@@ -241,7 +245,7 @@ string GetMapName() {
 }
 
 enum Medal {
-    Author = 0, Gold = 1, Silver, Bronze, NoMedal
+    WR = 0, Author = 1, Gold, Silver, Bronze, NoMedal
 }
 
 string GetMedalStringForTime(uint time) {

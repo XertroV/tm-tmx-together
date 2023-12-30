@@ -17,8 +17,6 @@ void InitializeDefaultCommands() {
     startnew(SaveCommands);
 }
 
-// todo: add default !help command
-
 void AddNewCommandMsgObj(const string &in name, const string &in msg) {
     auto obj = Json::Object();
     obj['msg'] = msg;
@@ -79,6 +77,7 @@ void Render_Settings_Commands() {
 
     UI::AlignTextToFramePadding();
     UI::Text("Current Commands:");
+    if (commands is null) return;
     for (uint i = 0; i < commands.Length; i++) {
         DrawCommandSettings(i);
     }
@@ -190,9 +189,9 @@ void RunScoreBuiltinCmd() {
 }
 
 void RunMyScoreBuiltinCmd() {
-    auto pmc = State::GetPlayerMedalCountFor(LoginToWSID(Chat::currentMsgSenderLogin));
+    auto pmc = State::GetPlayerMedalCountFor(Chat::currentMsgSenderName, Chat::currentMsgSenderLogin);
     string ret = "";
     if (pmc is null) ret += Chat::currentMsgSenderName + ": No finishes found";
-    else ret += pmc.GetSummaryStr();
+    else ret += pmc.GetSummaryStr() + " / " + pmc.GetLifetimeSummaryStr() + " / Maps: " + pmc.mapCount;
     Chat::SendMessage(ret);
 }

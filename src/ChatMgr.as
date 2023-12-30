@@ -18,7 +18,7 @@ namespace Chat {
     void ChatCoro() {
         while (true) {
             yield();
-            if (State::IsRunning)
+            if (!State::IsNotRunning)
                 CheckChat();
         }
     }
