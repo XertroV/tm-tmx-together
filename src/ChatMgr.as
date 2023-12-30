@@ -55,6 +55,8 @@ namespace Chat {
     dictionary votes;
     int goodVotes = 0;
     int badVotes = 0;
+    string currentMsgSenderName;
+    string currentMsgSenderLogin;
 
     void ResetState() {
         moveOns.DeleteAll();
@@ -76,13 +78,15 @@ namespace Chat {
     }
 
     string GetUserMoveOnWaitExtra(const string &in login) {
-        auto ret = "";
+        string ret = "";
         if (moveOns.Exists(login)) ret += "\\$3f3(1) ";
         else if (waits.Exists(login)) ret += "\\$f80(1) ";
         return ret;
     }
 
     void CheckMsg(NGameScriptChat_SEvent_NewEntry@ e) {
+        currentMsgSenderName = string(wstring(e.Entry.SenderDisplayName));
+        currentMsgSenderLogin = string(wstring(e.Entry.SenderLogin));
         string text = string(wstring(e.Entry.Text)).Trim();
         if (text == "1") OnMoveOn(e);
         else if (text == "2") OnWait(e);
@@ -90,6 +94,7 @@ namespace Chat {
         else if (text == "-") OnVote(e, -1);
         else if (text == "++") OnVote(e, 2);
         else if (text == "--") OnVote(e, -2);
+        else if (CommandExists(text)) RunCommand(text);
     }
 
     void OnMoveOn(NGameScriptChat_SEvent_NewEntry@ e) {
@@ -123,6 +128,10 @@ namespace Chat {
             if (prevVote > 0) goodVotes -= prevVote;
             else badVotes -= prevVote;
         }
+    }
+
+    string CurrentVotesStr() {
+        return "Move Ons: " + moveOns.GetSize() + ", Waits: " + waits.GetSize();
     }
 }
 

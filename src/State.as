@@ -89,20 +89,55 @@ namespace State {
         CachePlayerMedals(rd);
     }
 
+    PlayerMedalCount@ GetPlayerMedalCountFor(const string &in wsid) {
+        if (PlayerMedalCounts.Exists(wsid)) {
+            return cast<PlayerMedalCount>(PlayerMedalCounts[wsid]);
+        }
+        return null;
+    }
+
     void CachePlayerMedals(const MLFeed::HookRaceStatsEventsBase_V4@ rd) {
         for (uint i = 0; i < rd.sortedPlayers_TimeAttack.Length; i++) {
             auto player = cast<MLFeed::PlayerCpInfo_V4>(rd.sortedPlayers_TimeAttack[i]);
             if (!PlayerMedalCounts.Exists(player.WebServicesUserId)) {
-                @PlayerMedalCounts[player.WebServicesUserId] = PlayerMedalCount(player.Name);
+                auto pmc = PlayerMedalCount(player.Name);
+                @PlayerMedalCounts[player.WebServicesUserId] = pmc;
+                SortedPlayerMedals.InsertLast(pmc);
+                NewestPlayerMedals.InsertAt(0, pmc);
             }
             auto pmc = cast<PlayerMedalCount>(PlayerMedalCounts[player.WebServicesUserId]);
             if (pmc is null) continue;
             pmc.AddMedal(GetMedalForTime(uint(player.BestTime)));
         }
+        startnew(UpdateSortedPlayerMedals);
     }
 #else
     void OnPodiumSequence() {}
 #endif
+
+    PlayerMedalCount@[] SortedPlayerMedals;
+    PlayerMedalCount@[] NewestPlayerMedals;
+
+    void UpdateSortedPlayerMedals() {
+        SortedPlayerMedals.SortNonConst(function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
+            if (a.NbATs != b.NbATs) return a.NbATs > b.NbATs;
+            if (a.NbGolds != b.NbGolds) return a.NbGolds > b.NbGolds;
+            if (a.NbSilvers != b.NbSilvers) return a.NbSilvers > b.NbSilvers;
+            if (a.NbBronzes != b.NbBronzes) return a.NbBronzes > b.NbBronzes;
+            if (a.NbNoMedals != b.NbNoMedals) return a.NbNoMedals > b.NbNoMedals;
+            return true;
+        });
+    }
+
+    string BestMedalsSummaryStr() {
+        int nb = Math::Min(5, SortedPlayerMedals.Length);
+        string ret = "Top 5: ";
+        for (int i = 0; i < nb; i++) {
+            if (i > 0) ret += ", ";
+            ret += tostring(i + 1) + ". " + SortedPlayerMedals[i].GetSummaryStr();
+        }
+        return ret;
+    }
 
     // void AwaitNotPodium() {
     //     CGamePlayground@ cp;
@@ -402,13 +437,46 @@ class PlayerMedalCount {
     uint[] medalCounts = {0, 0, 0, 0, 0};
     uint mapCount = 0;
     vec4 col = vec4(1);
+    uint firstSeen;
+    uint lastSeen;
+
     PlayerMedalCount(const string &in name) {
         this.name = name;
+        firstSeen = Time::Now;
+        lastSeen = firstSeen;
+    }
+
+    uint get_NbATs() {
+        return medalCounts[0];
+    }
+    uint get_NbGolds() {
+        return medalCounts[1];
+    }
+    uint get_NbSilvers() {
+        return medalCounts[2];
+    }
+    uint get_NbBronzes() {
+        return medalCounts[3];
+    }
+    uint get_NbNoMedals() {
+        return medalCounts[4];
     }
 
     void AddMedal(Medal m) {
         mapCount++;
         medalCounts[int(m)]++;
+        lastSeen = Time::Now;
+    }
+
+    string GetSummaryStr() {
+        return "{name} ( $<$o$s$<$8f4{at}$> / $<$fd0{gold}$> / $<$abb{silver}$> / $<$c73{bronze}$> / $<$fff{noMedal}$>$> )"
+            .Replace("{name}", name)
+            .Replace("{at}", tostring(NbATs))
+            .Replace("{gold}", tostring(NbGolds))
+            .Replace("{silver}", tostring(NbSilvers))
+            .Replace("{bronze}", tostring(NbBronzes))
+            .Replace("{noMedal}", tostring(NbNoMedals))
+        ;
     }
 
     void Draw(vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0) {
@@ -428,61 +496,5 @@ class PlayerMedalCount {
         }
         nvg::Text(medalStart + vec2(medalSpacing * float(medalCounts.Length), 0), tostring(mapCount));
         nvg::ClosePath();
-    }
-}
-
-void DrawPMCHeadings(vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0) {
-    nvg::BeginPath();
-    nvg::FontSize(fontSize);
-    nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
-
-    nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
-    vec2 bounds = vec2(nameWidth + medalSpacing * 6., pmcPad.y * 2. + fontSize);
-    nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
-    nvg::Fill();
-    nvg::FillColor(vec4(.8, .8, .8, 1) * vec4(1, 1, 1, alpha));
-    nvg::Text(pos + pmcPad, "Player");
-    auto medalStart = pos + pmcPad + vec2(nameWidth, 0);
-    nvg::Text(medalStart + vec2(medalSpacing * 0., 0), "AT");
-    nvg::Text(medalStart + vec2(medalSpacing * 1., 0), "Gold");
-    nvg::Text(medalStart + vec2(medalSpacing * 2., 0), "Silver");
-    nvg::Text(medalStart + vec2(medalSpacing * 3., 0), "Bronze");
-    nvg::Text(medalStart + vec2(medalSpacing * 4., 0), "No Medal");
-    nvg::Text(medalStart + vec2(medalSpacing * 5., 0), "Total");
-    nvg::ClosePath();
-}
-
-void DrawPlayerMedalCounts() {
-    if (State::IsNotRunning) return;
-    auto app = GetApp();
-    if (app.LoadProgress.State == NGameLoadProgress::EState::Disabled) return;
-    // draw only when we're over the loading screen.
-    auto keys = State::PlayerMedalCounts.GetKeys();
-    float h = Draw::GetHeight();
-    float w = Draw::GetWidth();
-    // 1 extra for heading
-    auto nbPlayers = keys.Length + 1;
-    auto propYPad = 0.15;
-    float playerPropHeight = (1.0 - propYPad * 2.) / Math::Max(20., float(nbPlayers));
-    float linePxHeight = playerPropHeight * h;
-    float fontSize = (linePxHeight - pmcPad.y * 2.);
-    linePxHeight *= 1.2;
-    float fullWidth = h * 1.2;
-    float xStart = (w - fullWidth) / 2.;
-    float fullHeight = h * (playerPropHeight * float(nbPlayers));
-    float yStart = (h - fullHeight) / 2.;
-    vec2 nextPos = vec2(xStart, yStart);
-    float playerPropWidth = 1. / 4.;
-    float nameWidth = fullWidth * playerPropWidth;
-    float medalSpacing = fullWidth * (1. - playerPropWidth) / 6.; // * 2. / 3. / 6.
-
-    DrawPMCHeadings(nextPos, nameWidth, medalSpacing, fontSize);
-    nextPos.y += linePxHeight;
-
-    for (uint i = 0; i < keys.Length; i++) {
-        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::PlayerMedalCounts[keys[i]]);
-        if (pmc is null) continue;
-        pmc.Draw(nextPos, nameWidth, medalSpacing, fontSize);
-        nextPos.y += linePxHeight;
     }
 }

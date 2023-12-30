@@ -24,6 +24,7 @@ void Main() {
     startnew(MainCoro);
     startnew(ClearTaskCoro);
     startnew(Chat::ChatCoro).WithRunContext(Meta::RunContext::GameLoop);
+    startnew(LoadSavedCommands);
 }
 
 string lastMap;
@@ -232,6 +233,11 @@ uint GetRulesEndTime() {
 string GetMapUid() {
     auto map = GetApp().RootMap;
     return map is null ? "" : map.EdChallengeId;
+}
+
+string GetMapName() {
+    auto map = GetApp().RootMap;
+    return map is null ? "" : string(map.MapName);
 }
 
 enum Medal {
