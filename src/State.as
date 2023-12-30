@@ -118,12 +118,14 @@ namespace State {
         auto pmc = PlayerMedalCount(name, login);
         @PlayerMedalCounts[login] = pmc;
         SortedPlayerMedals.InsertLast(pmc);
+        GOATPlayerMedals.InsertLast(pmc);
         NewestPlayerMedals.InsertAt(0, pmc);
         return pmc;
     }
 
     PlayerMedalCount@[] SortedPlayerMedals;
     PlayerMedalCount@[] NewestPlayerMedals;
+    PlayerMedalCount@[] GOATPlayerMedals;
 
     void UpdateSortedPlayerMedals() {
         SortedPlayerMedals.SortNonConst(function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
@@ -133,6 +135,15 @@ namespace State {
             if (a.NbSilvers != b.NbSilvers) return a.NbSilvers > b.NbSilvers;
             if (a.NbBronzes != b.NbBronzes) return a.NbBronzes > b.NbBronzes;
             if (a.NbNoMedals != b.NbNoMedals) return a.NbNoMedals > b.NbNoMedals;
+            return true;
+        });
+        GOATPlayerMedals.SortNonConst(function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
+            if (a.NbLifeWRs != b.NbLifeWRs) return a.NbLifeWRs > b.NbLifeWRs;
+            if (a.NbLifeATs != b.NbLifeATs) return a.NbLifeATs > b.NbLifeATs;
+            if (a.NbLifeGolds != b.NbLifeGolds) return a.NbLifeGolds > b.NbLifeGolds;
+            if (a.NbLifeSilvers != b.NbLifeSilvers) return a.NbLifeSilvers > b.NbLifeSilvers;
+            if (a.NbLifeBronzes != b.NbLifeBronzes) return a.NbLifeBronzes > b.NbLifeBronzes;
+            if (a.NbLifeNoMedals != b.NbLifeNoMedals) return a.NbLifeNoMedals > b.NbLifeNoMedals;
             return true;
         });
     }
@@ -516,6 +527,25 @@ class PlayerMedalCount {
         return medalCounts[5];
     }
 
+    uint get_NbLifeWRs() {
+        return lifetimeMedalCounts[0];
+    }
+    uint get_NbLifeATs() {
+        return lifetimeMedalCounts[1];
+    }
+    uint get_NbLifeGolds() {
+        return lifetimeMedalCounts[2];
+    }
+    uint get_NbLifeSilvers() {
+        return lifetimeMedalCounts[3];
+    }
+    uint get_NbLifeBronzes() {
+        return lifetimeMedalCounts[4];
+    }
+    uint get_NbLifeNoMedals() {
+        return lifetimeMedalCounts[5];
+    }
+
     void AddMedal(Medal m) {
         mapCount++;
         medalCounts[int(m)]++;
@@ -561,4 +591,36 @@ class PlayerMedalCount {
         nvg::Text(medalStart + vec2(medalSpacing * float(medalCounts.Length), 0), tostring(mapCount));
         nvg::ClosePath();
     }
+
+    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0) {
+        nvg::BeginPath();
+        nvg::FontSize(fontSize);
+        nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
+
+        nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
+        vec2 bounds = vec2(nameWidth + medalSpacing * (medalCounts.Length + 1), pmcPad.y * 2. + fontSize);
+        nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
+        nvg::Fill();
+        nvg::FillColor(col * vec4(1, 1, 1, alpha));
+        nvg::Text(pos + pmcPad, tostring(rank) + ". " + name);
+        auto medalStart = pos + pmcPad + vec2(nameWidth, 0);
+        for (uint i = 0; i < medalCounts.Length; i++) {
+            nvg::FillColor(medalColors[i] * vec4(1, 1, 1, alpha));
+            nvg::Text(medalStart + vec2(medalSpacing * float(i), 0), tostring(medalCounts[i]));
+        }
+        nvg::FillColor(col * vec4(1, 1, 1, alpha));
+        nvg::Text(medalStart + vec2(medalSpacing * float(medalCounts.Length), 0), tostring(mapCount));
+        nvg::ClosePath();
+    }
 }
+
+vec4[] medalColors = {
+    vec4(240. / 255., 19. / 255., 90. / 255., 1),
+    vec4(0.204f, 0.842f, 0.052f, 1.000f),
+    vec4(0.942f, 0.854f, 0.033f, 1.000f),
+    vec4(0.626f, 0.705f, 0.761f, 1.000f),
+    vec4(0.687f, 0.423f, 0.122f, 1.000f),
+    vec4(1, 1, 1, 1),
+    vec4(1, 1, 1, 1),
+    vec4(1, 1, 1, 1),
+};
