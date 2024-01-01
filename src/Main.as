@@ -55,7 +55,9 @@ void MainCoro() {
 }
 
 void OnMapChange() {
-    Chat::ResetState();
+    Chat::ResetStateNewMap();
+    if (lastMap.Length > 0)
+        startnew(State::TryGettingWR);
 }
 
 void Notify(const string &in msg) {

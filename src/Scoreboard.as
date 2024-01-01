@@ -27,7 +27,9 @@ uint g_LastLoadingScreen = 0;
 void DrawPlayerMedalCounts() {
     if (State::IsNotRunning) return;
     auto app = GetApp();
-    if (app.LoadProgress.State == NGameLoadProgress::EState::Disabled) {
+    bool isLoading = app.LoadProgress.State != NGameLoadProgress::EState::Disabled
+        || app.Switcher.ModuleStack.Length == 0;
+    if (!isLoading) {
         if (Time::Now > g_LastLoadingScreen + 3000) return;
     } else {
         g_LastLoadingScreen = Time::Now;
@@ -104,7 +106,7 @@ void DrawAltPlayerMedalCounts() {
     nextPos.y += linePxHeight;
 
     nbPlayers = Math::Min(nbPlayers, pmcs.Length);
-    for (uint i = 0; i < nbPlayers; i++) {
+    for (int i = 0; i < nbPlayers; i++) {
         PlayerMedalCount@ pmc = cast<PlayerMedalCount>(pmcs[i]);
         if (pmc is null) continue;
         pmc.DrawCompact(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
@@ -117,7 +119,7 @@ void DrawAltPlayerMedalCounts() {
     nextPos.y += linePxHeight;
 
 
-    for (uint i = 0; i < nbOtherRows; i++) {
+    for (int i = 0; i < nbOtherRows; i++) {
         PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::NewestPlayerMedals[i]);
         if (pmc is null) continue;
         pmc.DrawCompact(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
@@ -128,7 +130,7 @@ void DrawAltPlayerMedalCounts() {
     DrawAltHeading("GOAT Players", nextPos, nameWidth, medalSpacing, fontSize);
     nextPos.y += linePxHeight;
 
-    for (uint i = 0; i < nbOtherRows; i++) {
+    for (int i = 0; i < nbOtherRows; i++) {
         PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[i]);
         if (pmc is null) continue;
         pmc.DrawCompactLifeTime(i + 1, nextPos, nameWidth, medalSpacing, fontSize);

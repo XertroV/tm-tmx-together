@@ -58,7 +58,7 @@ namespace Chat {
     string currentMsgSenderName;
     string currentMsgSenderLogin;
 
-    void ResetState() {
+    void ResetStateNewMap() {
         moveOns.DeleteAll();
         waits.DeleteAll();
         votes.DeleteAll();

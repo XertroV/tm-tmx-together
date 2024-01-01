@@ -104,15 +104,20 @@ namespace State {
     }
 
     void CachePlayerMedals(const MLFeed::HookRaceStatsEventsBase_V4@ rd) {
-        for (uint i = 0; i < rd.sortedPlayers_TimeAttack.Length; i++) {
-            auto player = cast<MLFeed::PlayerCpInfo_V4>(rd.sortedPlayers_TimeAttack[i]);
+        for (uint i = 0; i < rd.SortedPlayers_TimeAttack.Length; i++) {
+            auto player = cast<MLFeed::PlayerCpInfo_V4>(rd.SortedPlayers_TimeAttack[i]);
             if (!PlayerMedalCounts.Exists(player.Login)) {
                 AddNewPMC(player.Name, player.Login);
             }
             auto pmc = cast<PlayerMedalCount>(PlayerMedalCounts[player.Login]);
             if (pmc is null) continue;
             // todo: check if WR, if so, add to medal 0
-            pmc.AddMedal(GetMedalForTime(uint(player.BestTime)));
+            auto playerTime = player.BestTime;
+            if (i == 0 && playerTime > 0 && playerTime < wrTime && !wrError && wrUid == rd.lastMap) {
+                pmc.AddMedal(Medal::WR);
+            } else {
+                pmc.AddMedal(GetMedalForTime(uint(player.bestTime)));
+            }
         }
         startnew(UpdateSortedPlayerMedals);
     }
@@ -428,6 +433,29 @@ namespace State {
             break;
         }
         trace('loaded next map');
+    }
+
+    string wrUid;
+    int wrTime;
+    bool wrError = false;
+
+    void TryGettingWR() {
+        // try getting the WR for this map
+        wrUid = lastMap;
+        wrTime = -1;
+        wrError = false;
+        try {
+            auto j = Live::GetMapRecordsMeat("Personal_Best", lastMap);
+            if (j.Length > 0) {
+                wrTime = j[0]['score'];
+                trace("WR time: " + wrTime);
+            } else {
+                trace("No WR time");
+            }
+        } catch {
+            NotifyError("Exception updating WR for this map: " + getExceptionInfo());
+            wrError = true;
+        }
     }
 }
 
