@@ -113,7 +113,7 @@ namespace State {
             if (pmc is null) continue;
             // todo: check if WR, if so, add to medal 0
             auto playerTime = player.BestTime;
-            if (i == 0 && playerTime > 0 && playerTime < wrTime && !wrError && wrUid == rd.lastMap) {
+            if (i == 0 && playerTime > 0 && (playerTime < wrTime || wrTime < 0) && !wrError && wrUid == rd.lastMap) {
                 pmc.AddMedal(Medal::WR);
             } else {
                 pmc.AddMedal(GetMedalForTime(uint(player.bestTime)));
