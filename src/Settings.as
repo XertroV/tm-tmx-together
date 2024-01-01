@@ -58,3 +58,25 @@ bool S_ShowVotesOnScreen = true;
 
 [Setting category="Status Messages" name="Send Chat Update Messages"]
 bool S_SendChatUpdateMsgs = true;
+
+
+
+
+
+#if DEV
+bool dev_showScoreboard = false;
+
+[SettingsTab name="Debug" order="99"]
+void Render_Settings_DevTab() {
+    if (UI::Button("Load ALL player medal counts")) {
+        LoadAllPlayerMedalCounts();
+    }
+
+    if (UI::Button("Load just GOAT player medal counts")) {
+        LoadGOATPlayerMedalCounts();
+    }
+
+    dev_showScoreboard = UI::Checkbox("Show scoreboard", dev_showScoreboard);
+    if (dev_showScoreboard) g_LastLoadingScreen = Time::Now - 2900;
+}
+#endif

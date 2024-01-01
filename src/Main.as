@@ -20,7 +20,8 @@ void Main() {
         return;
     }
     @statusMsgs = StatusMsgUI();
-    nvgFont = nvg::LoadFont("DroidSans-Bold.ttf");
+    nvgFont = nvg::LoadFont("DroidSans-Bold.ttf", true, true);
+    // nvgFont = nvg::LoadFont("fonts/Montserrat-SemiBoldItalic.ttf", true, true);
     startnew(MainCoro);
     startnew(ClearTaskCoro);
     startnew(Chat::ChatCoro).WithRunContext(Meta::RunContext::GameLoop);
@@ -29,6 +30,10 @@ void Main() {
     if (!IO::FolderExists(IO::FromStorageFolder("users/"))) {
         IO::CreateFolder(IO::FromStorageFolder("users"));
     }
+
+    sleep(1000);
+
+    startnew(LoadAllPlayerMedalCounts);
 }
 
 string lastMap;

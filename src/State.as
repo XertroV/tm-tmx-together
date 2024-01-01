@@ -88,6 +88,13 @@ namespace State {
         Chat::SendGoodMessage(msg);
         CachePlayerMedals(rd);
     }
+#else
+    void OnPodiumSequence() {}
+#endif
+
+    bool IsPMCLoaded(const string &in login) {
+        return PlayerMedalCounts.Exists(login);
+    }
 
     PlayerMedalCount@ GetPlayerMedalCountFor(const string &in name, const string &in login) {
         if (PlayerMedalCounts.Exists(login)) {
@@ -109,14 +116,24 @@ namespace State {
         }
         startnew(UpdateSortedPlayerMedals);
     }
-#else
-    void OnPodiumSequence() {}
-#endif
 
     PlayerMedalCount@ AddNewPMC(const string &in name, const string &in login) {
         if (PlayerMedalCounts.Exists(login)) return GetPlayerMedalCountFor(name, login);
         auto pmc = PlayerMedalCount(name, login);
-        @PlayerMedalCounts[login] = pmc;
+        return _Internal_AddPMC(pmc);
+    }
+
+    PlayerMedalCount@ LoadPMC(const string &in filepath) {
+        auto j = Json::FromFile(filepath);
+        if (j is null) throw("no such file: " + filepath);
+        string login = j['login'];
+        if (IsPMCLoaded(login)) return cast<PlayerMedalCount>(PlayerMedalCounts[login]);
+        auto pmc = PlayerMedalCount(IO::FileMode::Read, login);
+        return _Internal_AddPMC(pmc);
+    }
+
+    PlayerMedalCount@ _Internal_AddPMC(PlayerMedalCount@ pmc) {
+        @PlayerMedalCounts[pmc.login] = pmc;
         SortedPlayerMedals.InsertLast(pmc);
         GOATPlayerMedals.InsertLast(pmc);
         NewestPlayerMedals.InsertAt(0, pmc);
@@ -135,6 +152,7 @@ namespace State {
             if (a.NbSilvers != b.NbSilvers) return a.NbSilvers > b.NbSilvers;
             if (a.NbBronzes != b.NbBronzes) return a.NbBronzes > b.NbBronzes;
             if (a.NbNoMedals != b.NbNoMedals) return a.NbNoMedals > b.NbNoMedals;
+            if (a.mapCount != b.mapCount) return a.mapCount > b.mapCount;
             return true;
         });
         GOATPlayerMedals.SortNonConst(function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
@@ -144,6 +162,7 @@ namespace State {
             if (a.NbLifeSilvers != b.NbLifeSilvers) return a.NbLifeSilvers > b.NbLifeSilvers;
             if (a.NbLifeBronzes != b.NbLifeBronzes) return a.NbLifeBronzes > b.NbLifeBronzes;
             if (a.NbLifeNoMedals != b.NbLifeNoMedals) return a.NbLifeNoMedals > b.NbLifeNoMedals;
+            if (a.mapCount != b.mapCount) return a.mapCount > b.mapCount;
             return true;
         });
     }
@@ -463,13 +482,26 @@ class PlayerMedalCount {
     string filename;
 
     PlayerMedalCount(const string &in name, const string &in login) {
-        this.filename = IO::FromStorageFolder("users/" + login + ".json");
         this.name = name;
         this.login = login;
         firstSeen = Time::Stamp;
         lastSeen = firstSeen;
-        // startnew(CoroutineFunc(FromJsonFile));
+        SetFilepathFromLogin();
         FromJsonFile();
+    }
+
+    // This constructer is here to load from a json file, the IO::FileMode makes this obvious but isn't used otherwise
+    PlayerMedalCount(IO::FileMode _modeCheck, const string &in login) {
+        if (login.Contains(".")) throw("dont pass file path");
+        this.login = login;
+        SetFilepathFromLogin();
+        auto j = FromJsonFile();
+        if (j is null) throw("could not load saved PMC for " + login);
+        this.name = j['name'];
+    }
+
+    void SetFilepathFromLogin() {
+        this.filename = IO::FromStorageFolder("users/" + login + ".json");
     }
 
     Json::Value@ ToJson() {
@@ -487,7 +519,7 @@ class PlayerMedalCount {
         Json::ToFile(filename, ToJson());
     }
 
-    void FromJson(Json::Value@ j) {
+    Json::Value@ FromJson(Json::Value@ j) {
         if (j.GetType() != Json::Type::Object) throw('not a json obj');
         mapCount = j['mapCount'];
         lastSeen = j['lastSeen'];
@@ -498,14 +530,18 @@ class PlayerMedalCount {
             if (i >= lifetimeMedalCounts.Length) lifetimeMedalCounts.InsertLast(mc[i]);
             else lifetimeMedalCounts[i] = mc[i];
         }
+        if (bool(j.Get('customName', false))) {
+            name = j['name'];
+        }
+        return j;
     }
 
-    void FromJsonFile() {
+    Json::Value@ FromJsonFile() {
         if (!IO::FileExists(filename)) {
-            return;
+            return null;
         }
         auto j = Json::FromFile(filename);
-        FromJson(j);
+        return FromJson(j);
     }
 
     uint get_NbWRs() {
@@ -592,25 +628,38 @@ class PlayerMedalCount {
         nvg::ClosePath();
     }
 
-    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0) {
+    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, uint[]@ mc = null) {
+        if (mc is null) @mc = medalCounts;
+        auto textOffset = vec2(0, fontSize * .15);
         nvg::BeginPath();
         nvg::FontSize(fontSize);
         nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
 
         nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
-        vec2 bounds = vec2(nameWidth + medalSpacing * (medalCounts.Length + 1), pmcPad.y * 2. + fontSize);
+        vec2 bounds = vec2(nameWidth + medalSpacing * (mc.Length + 1), pmcPad.y * 2. + fontSize);
         nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
         nvg::Fill();
         nvg::FillColor(col * vec4(1, 1, 1, alpha));
-        nvg::Text(pos + pmcPad, tostring(rank) + ". " + name);
+        nvg::Text(pos + pmcPad + textOffset, tostring(rank) + ". " + name);
         auto medalStart = pos + pmcPad + vec2(nameWidth, 0);
-        for (uint i = 0; i < medalCounts.Length; i++) {
+        for (uint i = 0; i < mc.Length; i++) {
+            auto c = mc[i];
+            auto fs = c < 100 ? fontSize : c < 1000 ? fontSize * .8 : fontSize * .6;
+            auto hOff = c < 100 ? 0. : c < 1000 ? fontSize * .1 : fontSize * .2;
+            nvg::FontSize(fs);
             nvg::FillColor(medalColors[i] * vec4(1, 1, 1, alpha));
-            nvg::Text(medalStart + vec2(medalSpacing * float(i), 0), tostring(medalCounts[i]));
+            nvg::Text(medalStart + vec2(medalSpacing * float(i), hOff) + textOffset, tostring(mc[i]));
         }
+        auto hOff = mapCount < 1000 ? 0 : fontSize * .15;
+        auto fs = mapCount < 1000 ? fontSize : fontSize * .7;
+        nvg::FontSize(fs);
         nvg::FillColor(col * vec4(1, 1, 1, alpha));
-        nvg::Text(medalStart + vec2(medalSpacing * float(medalCounts.Length), 0), tostring(mapCount));
+        nvg::Text(medalStart + vec2(medalSpacing * float(mc.Length), hOff) + textOffset, tostring(mapCount));
         nvg::ClosePath();
+    }
+
+    void DrawCompactLifeTime(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0) {
+        DrawCompact(rank, pos, nameWidth, medalSpacing, fontSize, alpha, lifetimeMedalCounts);
     }
 }
 
@@ -624,3 +673,26 @@ vec4[] medalColors = {
     vec4(1, 1, 1, 1),
     vec4(1, 1, 1, 1),
 };
+
+
+
+
+
+
+/// Some dev stuff
+
+
+void LoadAllPlayerMedalCounts() {
+    auto usersFolder = IO::FromStorageFolder("users/");
+    auto files = IO::IndexFolder(usersFolder, false);
+    for (uint i = 0; i < files.Length; i++) {
+        if (!files[i].EndsWith(".json")) continue;
+        State::LoadPMC(files[i]);
+    }
+    State::UpdateSortedPlayerMedals();
+}
+
+void LoadGOATPlayerMedalCounts() {
+    // todo if we need to
+    LoadAllPlayerMedalCounts();
+}
