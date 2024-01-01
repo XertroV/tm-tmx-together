@@ -79,13 +79,15 @@ namespace State {
         auto rd = MLFeed::GetRaceData_V4();
         if (rd.SortedPlayers_TimeAttack.Length == 0) return;
         auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(rd.SortedPlayers_TimeAttack[0]);
-        string msg = "gz " + bestPlayer.Name + " (" + Time::Format(bestPlayer.BestTime) + " - " + GetMedalStringForTime(bestPlayer.BestTime) + ")";
-        if (bestPlayer.WebServicesUserId == "a2f0675a-8d25-4db7-9be5-d2ce8902b8cc") { // tyler mayhem
-            msg = "Tyler_Mayhem is really cool";
-        } else if (bestPlayer.WebServicesUserId == "73fbc796-2a6f-472f-a130-818ab5ee4618") { // lakanta
-            msg = "gz Lakanta! Hopefully not last. lakant2Speed lakant2Speed lakant2Speed";
-        }
+        bool isWR = IsPlayerTimeWR(bestPlayer.BestTime);
+        auto medalStr = isWR ? "$<$f19$oWorld Record!!!$>" : GetMedalStringForTime(bestPlayer.BestTime);
+        string msg = "gz " + bestPlayer.Name + " (" + Time::Format(bestPlayer.BestTime) + " - " + medalStr + ")";
         Chat::SendGoodMessage(msg);
+        if (bestPlayer.WebServicesUserId == "a2f0675a-8d25-4db7-9be5-d2ce8902b8cc") { // tyler mayhem
+            Chat::SendGoodMessage("Tyler_Mayhem is really cool");
+        } else if (bestPlayer.WebServicesUserId == "73fbc796-2a6f-472f-a130-818ab5ee4618") { // lakanta
+            Chat::SendGoodMessage("gz Lakanta! Hopefully not last. lakant2Speed lakant2Speed lakant2Speed");
+        }
         CachePlayerMedals(rd);
     }
 #else
@@ -113,13 +115,18 @@ namespace State {
             if (pmc is null) continue;
             // todo: check if WR, if so, add to medal 0
             auto playerTime = player.BestTime;
-            if (i == 0 && playerTime > 0 && (playerTime < wrTime || wrTime < 0) && !wrError && wrUid == rd.lastMap) {
+            if (i == 0 && IsPlayerTimeWR(playerTime) && !wrError && wrUid == rd.lastMap) {
                 pmc.AddMedal(Medal::WR);
             } else {
                 pmc.AddMedal(GetMedalForTime(uint(player.bestTime)));
             }
         }
         startnew(UpdateSortedPlayerMedals);
+    }
+
+    // only checks if better than WR for curr map
+    bool IsPlayerTimeWR(uint playerTime) {
+        return playerTime > 0 && (playerTime < wrTime || wrTime < 0);
     }
 
     PlayerMedalCount@ AddNewPMC(const string &in name, const string &in login) {
@@ -626,7 +633,7 @@ class PlayerMedalCount {
     }
 
     string GenerateSummaryStr(uint[]@ mc, const string &in nameReplacement = "") {
-        return "{name} ( $<$o$s$<$f19{wr}$> / $<$8f4{at}$> / $<$fd0{gold}$> / $<$abb{silver}$> / $<$c73{bronze}$> / $<$fff{noMedal}$>$> )"
+        return "{name} ( $<$o$<$f19{wr}$> / $<$8f4{at}$> / $<$fd0{gold}$> / $<$abb{silver}$> / $<$c73{bronze}$> / $<$fff{noMedal}$>$> )"
             .Replace("{name}", nameReplacement.Length == 0 ? name : nameReplacement)
             .Replace("{wr}", tostring(mc[0]))
             .Replace("{at}", tostring(mc[1]))
