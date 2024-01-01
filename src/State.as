@@ -53,6 +53,7 @@ namespace State {
         currState = GameState::Initializing;
         startnew(LoadNextTmxMap);
         startnew(WatchForPodium);
+        startnew(WatchForWR);
     }
 
     bool podiumWatchRunning = false;
@@ -70,6 +71,35 @@ namespace State {
             yield();
         }
         podiumWatchRunning = false;
+    }
+
+    bool wrWatchRunning = false;
+    void WatchForWR() {
+        if (wrWatchRunning) return;
+        wrWatchRunning = true;
+        string wrMapUid;
+        bool triggeredAuto120 = false;
+        while (currState != GameState::NotRunning) {
+            sleep(1000);
+            if (!S_AutoMoveOnForWR) continue;
+            auto app = GetApp();
+            if (app.RootMap is null) continue;
+            // if (triggeredAuto120 && wrMapUid == lastMap) continue;
+            auto rd = MLFeed::GetRaceData_V4();
+            auto @players = rd.SortedPlayers_TimeAttack;
+            if (players.Length == 0) continue;
+            auto bestPlayer = players[0];
+            if (IsPlayerTimeWR(bestPlayer.BestTime)) {
+                triggeredAuto120 = true;
+                wrMapUid = lastMap;
+                Chat::SendMessage("$s$o$fb3 WR by " + bestPlayer.Name + "! BWOAH");
+                startnew(State::AutoMoveOn);
+                while (wrMapUid == lastMap) yield();
+                triggeredAuto120 = false;
+                wrMapUid = "";
+            }
+        }
+        wrWatchRunning = false;
     }
 
     dictionary PlayerMedalCounts;
@@ -115,7 +145,7 @@ namespace State {
             if (pmc is null) continue;
             // todo: check if WR, if so, add to medal 0
             auto playerTime = player.BestTime;
-            if (i == 0 && IsPlayerTimeWR(playerTime) && !wrError && wrUid == rd.lastMap) {
+            if (i == 0 && IsPlayerTimeWR(playerTime) && !wrError) {
                 pmc.AddMedal(Medal::WR);
             } else {
                 pmc.AddMedal(GetMedalForTime(uint(player.bestTime)));
@@ -125,8 +155,8 @@ namespace State {
     }
 
     // only checks if better than WR for curr map
-    bool IsPlayerTimeWR(uint playerTime) {
-        return playerTime > 0 && (playerTime < wrTime || wrTime < 0);
+    bool IsPlayerTimeWR(int playerTime) {
+        return playerTime > 0 && (playerTime < wrTime || wrTime < 0) && wrUid == lastMap;
     }
 
     PlayerMedalCount@ AddNewPMC(const string &in name, const string &in login) {
@@ -207,6 +237,7 @@ namespace State {
         auto cp = cast<CSmArenaClient>(GetApp().CurrentPlayground);
         if (cp !is null) startnew(AwaitRulesStart);
         startnew(WatchForPodium);
+        startnew(WatchForWR);
     }
 
     void HardReset() {
@@ -249,6 +280,7 @@ namespace State {
             UpdateNextMap();
             if (!CheckUploadedToNadeo()) {
                 Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
+                S_LastTmxID = loadNextId;
                 LoadNextTmxMap();
                 return;
             }
@@ -265,7 +297,9 @@ namespace State {
             Chat::SendWarningMessage("Preparing Next Map...");
             UpdateNextMap();
             if (!CheckUploadedToNadeo()) {
-                Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
+                Chat::SendWarningMessage("Map not uploaded to Nadeo! Cannot load " + loadNextId + ". Trying next in 5s.");
+                sleep(5000);
+                S_LastTmxID = loadNextId;
                 SetNextTmxMap();
                 return;
             }
@@ -325,6 +359,9 @@ namespace State {
         UpdateNextMap();
         if (!CheckUploadedToNadeo()) {
             Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
+            S_LastTmxID = loadNextId;
+            currState = GameState::Running;
+            sleep(5000);
             AutoMoveOn();
             return;
         }
