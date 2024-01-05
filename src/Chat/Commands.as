@@ -5,7 +5,7 @@ void LoadSavedCommands() {
     if (!IO::FileExists(commandsFile)) InitializeDefaultCommands();
     else @commands = Json::FromFile(commandsFile);
     if (commands is null || commands.GetType() != Json::Type::Array) InitializeDefaultCommands();
-    if (!S_AddedCommands_0_1_7) {
+    if (!S_AddedCommands_0_1_7a) {
         AddCommands_0_1_7();
         startnew(SaveCommands);
     }
@@ -65,9 +65,10 @@ void AddBuiltinCommands() {
 
 
 void AddCommands_0_1_7() {
-    S_AddedCommands_0_1_7 = true;
+    S_AddedCommands_0_1_7a = true;
     AddNewCommandBuiltIn('!goat');
     AddNewCommandBuiltIn('!xertrov', true);
+    AddNewCommandBuiltIn('!version', true);
 }
 
 
@@ -198,6 +199,7 @@ void RunBultinCommand(const string &in name) {
     else if (name == "!myscore") RunMyScoreBuiltinCmd();
     else if (name == "!goat") RunGoatBuiltinCmd();
     else if (name == "!xertrov") RunXertroVBuiltinCmd();
+    else if (name == "!version") RunVersionBuiltinCmd();
 }
 
 void RunHelpBuiltinCmd() {
@@ -240,5 +242,9 @@ void RunXertroVBuiltinCmd() {
     Chat::SendMessage("$<$17cX$37ae$579r$777t$985r$c83o$e81V$> is the author of the TMX Together!");
 }
 
+void RunVersionBuiltinCmd() {
+    Chat::SendMessage("Version: " + Meta::ExecutingPlugin().Version + " / version nonce: " + "1");
+}
+
 [Setting hidden]
-bool S_AddedCommands_0_1_7 = false;
+bool S_AddedCommands_0_1_7a = false;
