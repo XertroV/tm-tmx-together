@@ -5,15 +5,19 @@ void LoadSavedCommands() {
     if (!IO::FileExists(commandsFile)) InitializeDefaultCommands();
     else @commands = Json::FromFile(commandsFile);
     if (commands is null || commands.GetType() != Json::Type::Array) InitializeDefaultCommands();
+    if (!S_AddedCommands_0_1_7) {
+        AddCommands_0_1_7();
+        startnew(SaveCommands);
+    }
 }
 
 void InitializeDefaultCommands() {
     @commands = Json::Array();
-    AddBuiltinCommands();
     AddNewCommandMsgObj('!about', "Welcome to TMX Together, where we play each TMX map in order. Chat '1' to vote to move on, and '2' to say you want to hunt more. '++', '+', '-', '--' to rate the map. '!help' will list commands.");
     AddNewCommandMsgObj('!twitch', "$l[https://www.twitch.tv/lakantanz]$s$a7e Watch Lakanta live!$l");
     AddNewCommandMsgObj('!wtf', "This is $iTMX Together,$i hosted by $sLakanta$s. Type $s$o!help$s$o for a list of commands. You can also $l[https://www.twitch.tv/lakantanz]$s$a7e Watch Lakanta live on Twitch!$l");
     AddNewCommandMsgObj('!map', "Current map: $l[{map_link}]{map_tmx_id}$l - {map_name} - {map_tmio_link}");
+    AddBuiltinCommands();
     startnew(SaveCommands);
 }
 
@@ -29,12 +33,13 @@ void AddNewCommandMsgObj(const string &in name, const string &in msg) {
     commands.Add(obj);
 }
 
-void AddNewCommandBuiltIn(const string &in name) {
+void AddNewCommandBuiltIn(const string &in name, bool hidden = false) {
     auto obj = Json::Object();
     obj['type'] = 'builtin';
     obj['name'] = name;
+    obj['hidden'] = hidden;
     if (CommandExists(name)) {
-        NotifyError("Command exists: " + name);
+        // NotifyError("Command exists: " + name);
         return;
     }
     commands.Add(obj);
@@ -53,8 +58,18 @@ void AddBuiltinCommands() {
     AddNewCommandBuiltIn('!votes');
     AddNewCommandBuiltIn('!help');
     AddNewCommandBuiltIn('!score');
+    AddNewCommandBuiltIn('!score');
     AddNewCommandBuiltIn('!myscore');
+    AddCommands_0_1_7();
 }
+
+
+void AddCommands_0_1_7() {
+    S_AddedCommands_0_1_7 = true;
+    AddNewCommandBuiltIn('!goat');
+    AddNewCommandBuiltIn('!xertrov', true);
+}
+
 
 [Setting hidden]
 string S_WelcomeMessage = "Welcome, {player_name}, to TMX Together! If you don't know what this is, try typing some commands, like !wtf, !about, or !help.";
@@ -181,12 +196,17 @@ void RunBultinCommand(const string &in name) {
     else if (name == "!help") RunHelpBuiltinCmd();
     else if (name == "!score") RunScoreBuiltinCmd();
     else if (name == "!myscore") RunMyScoreBuiltinCmd();
+    else if (name == "!goat") RunGoatBuiltinCmd();
+    else if (name == "!xertrov") RunXertroVBuiltinCmd();
 }
 
 void RunHelpBuiltinCmd() {
     string cmds = "Commands: ";
+    bool doneFirst = false;
     for (uint i = 0; i < commands.Length; i++) {
-        if (i > 0) cmds += ", ";
+        if (bool(commands[i].Get("hidden", false))) continue;
+        if (doneFirst) cmds += ", ";
+        else doneFirst = true;
         cmds += commands[i]['name'];
     }
     Chat::SendMessage(cmds);
@@ -200,10 +220,25 @@ void RunScoreBuiltinCmd() {
     Chat::SendMessage(State::BestMedalsSummaryStr());
 }
 
+void RunGoatBuiltinCmd() {
+    Chat::SendMessage(State::GoatSummaryStr());
+}
+
 void RunMyScoreBuiltinCmd() {
     auto pmc = State::GetPlayerMedalCountFor(Chat::currentMsgSenderName, Chat::currentMsgSenderLogin);
     string ret = "";
     if (pmc is null) ret += Chat::currentMsgSenderName + ": No finishes found";
-    else ret += pmc.GetSummaryStr() + " / " + pmc.GetLifetimeSummaryStr() + " / Maps: " + pmc.mapCount;
+    else {
+        int goatNumber = State::GOATPlayerMedals.FindByRef(pmc) + 1;
+        if (goatNumber <= 0) goatNumber = State::GOATPlayerMedals.Length;
+        ret += pmc.GetSummaryStr() + " / " + pmc.GetLifetimeSummaryStr() + " / Maps: " + pmc.mapCount + " / GOAT #: " + goatNumber;
+    }
     Chat::SendMessage(ret);
 }
+
+void RunXertroVBuiltinCmd() {
+    Chat::SendMessage("$<$17cX$37ae$579r$777t$985r$c83o$e81V$> is the author of the TMX Together!");
+}
+
+[Setting hidden]
+bool S_AddedCommands_0_1_7 = false;

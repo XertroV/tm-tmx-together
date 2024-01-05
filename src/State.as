@@ -70,8 +70,8 @@ namespace State {
             auto rd = MLFeed::GetRaceData_V4();
             auto newNbPlayers = rd.SortedPlayers_TimeAttack.Length;
             if (newNbPlayers != lastNbPlayers) {
-                lastNbPlayers = newNbPlayers;
                 CheckForNewPlayers();
+                lastNbPlayers = newNbPlayers;
             }
             yield();
         }
@@ -81,7 +81,7 @@ namespace State {
     void CheckForNewPlayers() {
         auto rd = MLFeed::GetRaceData_V4();
         auto @taPlayers = rd.SortedPlayers_TimeAttack;
-        for (uint i = 0; i < taPlayers.Length; i++) {
+        for (int i = taPlayers.Length - 1; i >= lastNbPlayers; i--) {
             auto p = cast<MLFeed::PlayerCpInfo_V4>(taPlayers[i]);
             if (!IsPMCLoaded(p.Login) || (ENABLE_DEV_WELCOME && p.Name == "XertroV")) {
                 OnNewPlayer(p);
@@ -255,6 +255,15 @@ namespace State {
         for (int i = 0; i < nb; i++) {
             if (i > 0) ret += ", ";
             ret += tostring(i + 1) + ". " + SortedPlayerMedals[i].GetSummaryStr();
+        }
+        return ret;
+    }
+    string GoatSummaryStr() {
+        int nb = Math::Min(5, GOATPlayerMedals.Length);
+        string ret = "GOATs: ";
+        for (int i = 0; i < nb; i++) {
+            if (i > 0) ret += ", ";
+            ret += tostring(i + 1) + ". " + GOATPlayerMedals[i].GetSummaryStr();
         }
         return ret;
     }
