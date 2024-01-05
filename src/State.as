@@ -462,10 +462,13 @@ namespace State {
         currState = GameState::Running;
     }
 
+    uint lastExtendLimit = 0;
     void RemoveTimeLimit() {
+        lastExtendLimit = Time::Now;
         ModifyTimeLimit(-1);
     }
     void ExtendTimeLimit() {
+        lastExtendLimit = Time::Now;
         ModifyTimeLimit(S_DefaultTimeLimit < 0 ? 300 : S_DefaultTimeLimit);
     }
     void ModifyTimeLimit(int extraTime) {

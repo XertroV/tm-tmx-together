@@ -80,7 +80,7 @@ class GameInterface {
         UI::SetCursorPos(linePos + vec2(UI::GetWindowContentRegionWidth() / 2., 0));
         UI::Text(Icons::ClockO + " " + (noTimeLimit ? "--" : Time::Format(msLeft + 1000, false)));
         // between 9 and 10s before changing maps
-        bool triggerNextMapSaveWindow = 9000 < msLeft && msLeft < 10000;
+        bool triggerNextMapSaveWindow = 9000 < msLeft && msLeft < 10000 && State::lastExtendLimit + 20000 < Time::Now;
         if (State::IsRunning && triggerNextMapSaveWindow) {
             startnew(State::SetNextTmxMap);
         }
