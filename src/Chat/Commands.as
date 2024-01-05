@@ -56,6 +56,11 @@ void AddBuiltinCommands() {
     AddNewCommandBuiltIn('!myscore');
 }
 
+[Setting hidden]
+string S_WelcomeMessage = "Welcome, {player_name}, to TMX Together! If you don't know what this is, try typing some commands, like !wtf, !about, or !help.";
+[Setting hidden]
+bool S_EnableWelcomeMsg = true;
+
 
 [SettingsTab name="Commands" order='5']
 void Render_Settings_Commands() {
@@ -74,6 +79,13 @@ void Render_Settings_Commands() {
     if (UI::Button("Add Builtin Commands")) {
         AddBuiltinCommands();
     }
+
+    UI::Separator();
+
+    S_EnableWelcomeMsg = UI::Checkbox("Enable Welcome Msg (via chat to new ppl)", S_EnableWelcomeMsg);
+    S_WelcomeMessage = UI::InputText("Welcome Msg", S_WelcomeMessage);
+
+    UI::Separator();
 
     UI::AlignTextToFramePadding();
     UI::Text("Current Commands:");

@@ -52,8 +52,47 @@ namespace State {
         lastTmxId = S_LastTmxID;
         currState = GameState::Initializing;
         startnew(LoadNextTmxMap);
+        StartCoros();
+    }
+
+    void StartCoros() {
         startnew(WatchForPodium);
         startnew(WatchForWR);
+        startnew(WatchForNewPlayers);
+    }
+
+    bool newPlayerWatchRunning = false;
+    uint lastNbPlayers = 0;
+    void WatchForNewPlayers() {
+        if (newPlayerWatchRunning) return;
+        newPlayerWatchRunning = true;
+        while (currState != GameState::NotRunning) {
+            auto rd = MLFeed::GetRaceData_V4();
+            auto newNbPlayers = rd.SortedPlayers_TimeAttack.Length;
+            if (newNbPlayers != lastNbPlayers) {
+                lastNbPlayers = newNbPlayers;
+                CheckForNewPlayers();
+            }
+            yield();
+        }
+        newPlayerWatchRunning = false;
+    }
+
+    void CheckForNewPlayers() {
+        auto rd = MLFeed::GetRaceData_V4();
+        auto @taPlayers = rd.SortedPlayers_TimeAttack;
+        for (uint i = 0; i < taPlayers.Length; i++) {
+            auto p = cast<MLFeed::PlayerCpInfo_V4>(taPlayers[i]);
+            if (!IsPMCLoaded(p.Login) || (ENABLE_DEV_WELCOME && p.Name == "XertroV")) {
+                OnNewPlayer(p);
+                break;
+            }
+        }
+    }
+
+    void OnNewPlayer(const MLFeed::PlayerCpInfo_V4@ p) {
+        AddNewPMC(p.Name, p.Login);
+        Chat::SendMessage(S_WelcomeMessage.Replace("{player_name}", p.Name));
     }
 
     bool podiumWatchRunning = false;
@@ -187,6 +226,7 @@ namespace State {
     PlayerMedalCount@[] GOATPlayerMedals;
 
     void UpdateSortedPlayerMedals() {
+        if (SortedPlayerMedals.Length == 0) return;
         SortedPlayerMedals.SortNonConst(function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
             if (a.NbWRs != b.NbWRs) return a.NbWRs > b.NbWRs;
             if (a.NbATs != b.NbATs) return a.NbATs > b.NbATs;
@@ -236,8 +276,7 @@ namespace State {
         currState = GameState::Running;
         auto cp = cast<CSmArenaClient>(GetApp().CurrentPlayground);
         if (cp !is null) startnew(AwaitRulesStart);
-        startnew(WatchForPodium);
-        startnew(WatchForWR);
+        StartCoros();
     }
 
     void HardReset() {
