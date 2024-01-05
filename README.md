@@ -21,4 +21,4 @@ Todo:
 - json not object error when request fails, see lakanta stream 2023-10-14
  at 3:06:00 ish -- logs brought up
 
--
+- WR race condition when entering new map, 12:48:xx into lakata stream on 3rd Jan

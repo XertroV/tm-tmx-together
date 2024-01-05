@@ -89,7 +89,7 @@ namespace State {
             auto @players = rd.SortedPlayers_TimeAttack;
             if (players.Length == 0) continue;
             auto bestPlayer = players[0];
-            if (IsPlayerTimeWR(bestPlayer.BestTime)) {
+            if (IsPlayerTimeWR(bestPlayer.BestTime) && bestPlayer.BestTime < (rd.Rules_GameTime - rd.Rules_StartTime)) {
                 triggeredAuto120 = true;
                 wrMapUid = lastMap;
                 Chat::SendMessage("$s$o$fb3 WR by " + bestPlayer.Name + "! BWOAH");
@@ -500,6 +500,11 @@ namespace State {
             NotifyError("Exception updating WR for this map: " + getExceptionInfo());
             wrError = true;
         }
+    }
+
+    void ResetWR() {
+        wrUid = "nil";
+        wrTime = -1;
     }
 }
 
