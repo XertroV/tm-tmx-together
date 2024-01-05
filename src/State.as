@@ -263,7 +263,7 @@ namespace State {
         string ret = "GOATs: ";
         for (int i = 0; i < nb; i++) {
             if (i > 0) ret += ", ";
-            ret += tostring(i + 1) + ". " + GOATPlayerMedals[i].GetSummaryStr();
+            ret += tostring(i + 1) + ". " + GOATPlayerMedals[i].GetLifetimeSummaryStr();
         }
         return ret;
     }
