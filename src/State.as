@@ -263,7 +263,7 @@ namespace State {
         string ret = "GOATs: ";
         for (int i = 0; i < nb; i++) {
             if (i > 0) ret += ", ";
-            ret += tostring(i + 1) + ". " + GOATPlayerMedals[i].GetLifetimeSummaryStr();
+            ret += tostring(i + 1) + ". " + GOATPlayerMedals[i].GetLifetimeSummaryStr(true);
         }
         return ret;
     }
@@ -721,8 +721,8 @@ class PlayerMedalCount {
     string GetSummaryStr() {
         return GenerateSummaryStr(medalCounts);
     }
-    string GetLifetimeSummaryStr() {
-        return GenerateSummaryStr(lifetimeMedalCounts, "All Time:");
+    string GetLifetimeSummaryStr(bool useName) {
+        return GenerateSummaryStr(lifetimeMedalCounts, useName ? name + ":" : "All Time:");
     }
 
     string GenerateSummaryStr(uint[]@ mc, const string &in nameReplacement = "") {

@@ -231,7 +231,7 @@ void RunMyScoreBuiltinCmd() {
     else {
         int goatNumber = State::GOATPlayerMedals.FindByRef(pmc) + 1;
         if (goatNumber <= 0) goatNumber = State::GOATPlayerMedals.Length;
-        ret += pmc.GetSummaryStr() + " / " + pmc.GetLifetimeSummaryStr() + " / Maps: " + pmc.mapCount + " / GOAT #: " + goatNumber;
+        ret += pmc.GetSummaryStr() + " / " + pmc.GetLifetimeSummaryStr(false) + " / Maps: " + pmc.mapCount + " / GOAT #: " + goatNumber;
     }
     Chat::SendMessage(ret);
 }
