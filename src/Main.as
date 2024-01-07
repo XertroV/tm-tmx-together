@@ -189,7 +189,6 @@ void _Unload() {
 
 
 
-
 int GetNbPlayers() {
     auto cp = GetApp().CurrentPlayground;
     return cp is null ? 0 : cp.Players.Length;
@@ -240,6 +239,10 @@ uint GetRulesEndTime() {
     auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
     if (cp is null || cp.Arena is null || cp.Arena.Rules is null) return uint(-1);
     return uint(cp.Arena.Rules.RulesStateEndTime);
+}
+
+int GetSecondsLeft() {
+    return (int(GetRulesEndTime()) - int(GetRulesStartTime())) / 1000;
 }
 
 string GetMapUid() {

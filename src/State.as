@@ -132,7 +132,9 @@ namespace State {
                 triggeredAuto120 = true;
                 wrMapUid = lastMap;
                 Chat::SendMessage("$s$o$fb3 WR by " + bestPlayer.Name + "! BWOAH");
-                startnew(State::AutoMoveOn);
+                auto timeLeft = GetSecondsLeft();
+                if (timeLeft > S_AutoMoveOnInSeconds)
+                    startnew(State::AutoMoveOn);
                 while (wrMapUid == lastMap) yield();
                 triggeredAuto120 = false;
                 wrMapUid = "";
