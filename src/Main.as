@@ -98,11 +98,14 @@ void Update(float dt) {
 }
 
 void Render() {
+
     if (!ShowWindow) return;
     if (!UI::IsOverlayShown() && !S_ShowIfOverlayHidden) return;
     if (!UI::IsGameUIVisible() && !S_ShowIfUIHidden) return;
 
+    ScoreEditor::Render();
     DrawPlayerMedalCounts();
+
     statusMsgs.RenderUpdate(lastDt);
 
     vec2 size = vec2(450, 300);

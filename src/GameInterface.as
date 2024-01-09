@@ -87,6 +87,9 @@ class GameInterface {
     }
 
     void DrawPlayerProgress() {
+        if (UI::Button("Edit Scores")) {
+            ScoreEditor::windowVisible = !ScoreEditor::windowVisible;
+        }
         if (UI::CollapsingHeader("Current Runs")) {
 #if DEPENDENCY_MLFEEDRACEDATA
             UI::Indent();

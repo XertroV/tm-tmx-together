@@ -81,7 +81,7 @@ namespace State {
     void CheckForNewPlayers() {
         auto rd = MLFeed::GetRaceData_V4();
         auto @taPlayers = rd.SortedPlayers_TimeAttack;
-        for (int i = taPlayers.Length - 1; i >= lastNbPlayers; i--) {
+        for (int i = int(taPlayers.Length) - 1; i >= int(lastNbPlayers); i--) {
             auto p = cast<MLFeed::PlayerCpInfo_V4>(taPlayers[i]);
             if (!IsPMCLoaded(p.Login) || (ENABLE_DEV_WELCOME && p.Name == "XertroV")) {
                 OnNewPlayer(p);
@@ -119,7 +119,7 @@ namespace State {
         string wrMapUid;
         bool triggeredAuto120 = false;
         while (currState != GameState::NotRunning) {
-            sleep(1000);
+            sleep(500);
             if (!S_AutoMoveOnForWR) continue;
             auto app = GetApp();
             if (app.RootMap is null) continue;
@@ -128,12 +128,15 @@ namespace State {
             auto @players = rd.SortedPlayers_TimeAttack;
             if (players.Length == 0) continue;
             auto bestPlayer = players[0];
-            if (IsPlayerTimeWR(bestPlayer.BestTime) && bestPlayer.BestTime < (rd.Rules_GameTime - rd.Rules_StartTime)) {
+            if (IsPlayerTimeWR(bestPlayer.BestTime)
+                && bestPlayer.BestTime < (rd.Rules_GameTime - rd.Rules_StartTime)
+                && rd.Rules_StartTime < 200000000
+            ) {
                 triggeredAuto120 = true;
                 wrMapUid = lastMap;
-                Chat::SendMessage("$s$o$fb3 WR by " + bestPlayer.Name + "! BWOAH");
+                Chat::SendMessage("$s$o$f3a WR by " + bestPlayer.Name + "! BWOAH");
                 auto timeLeft = GetSecondsLeft();
-                if (timeLeft > S_AutoMoveOnInSeconds)
+                if (timeLeft > int(S_AutoMoveOnInSeconds))
                     startnew(State::AutoMoveOn);
                 while (wrMapUid == lastMap) yield();
                 triggeredAuto120 = false;
@@ -209,10 +212,17 @@ namespace State {
     PlayerMedalCount@ LoadPMC(const string &in filepath) {
         auto j = Json::FromFile(filepath);
         if (j is null) throw("no such file: " + filepath);
-        string login = j['login'];
-        if (IsPMCLoaded(login)) return cast<PlayerMedalCount>(PlayerMedalCounts[login]);
-        auto pmc = PlayerMedalCount(IO::FileMode::Read, login);
-        return _Internal_AddPMC(pmc);
+        try {
+            string login = j['login'];
+            if (IsPMCLoaded(login)) return cast<PlayerMedalCount>(PlayerMedalCounts[login]);
+            auto pmc = PlayerMedalCount(IO::FileMode::Read, login);
+            return _Internal_AddPMC(pmc);
+        } catch {
+            status = "Exception: " + getExceptionInfo() + " \n Loading: " + filepath;
+            NotifyError(status);
+            currState = GameState::Error;
+        }
+        return null;
     }
 
     PlayerMedalCount@ _Internal_AddPMC(PlayerMedalCount@ pmc) {
@@ -292,6 +302,7 @@ namespace State {
 
     void HardReset() {
         currState = GameState::NotRunning;
+        startnew(LoadAllPlayerMedalCounts);
     }
 
     // should be called once per frame when necessary
@@ -388,6 +399,7 @@ namespace State {
     }
 
     bool CheckUploadedToNadeo() {
+        status = "Checking uploaded to Nadeo...";
         auto map = Core::GetMapFromUid(loadNextUid);
         if (map is null) return false;
         // todo: implement caching of map details?
@@ -538,9 +550,7 @@ namespace State {
 
     void TryGettingWR() {
         // try getting the WR for this map
-        wrUid = lastMap;
-        wrTime = -1;
-        wrError = false;
+        ResetWR();
         try {
             auto j = Live::GetMapRecordsMeat("Personal_Best", lastMap);
             if (j.Length > 0) {
@@ -549,6 +559,7 @@ namespace State {
             } else {
                 trace("No WR time");
             }
+            wrUid = lastMap;
         } catch {
             NotifyError("Exception updating WR for this map: " + getExceptionInfo());
             wrError = true;
@@ -558,6 +569,7 @@ namespace State {
     void ResetWR() {
         wrUid = "nil";
         wrTime = -1;
+        wrError = false;
     }
 }
 
