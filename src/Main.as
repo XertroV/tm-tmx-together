@@ -31,9 +31,13 @@ void Main() {
         IO::CreateFolder(IO::FromStorageFolder("users"));
     }
 
-    sleep(1000);
+    yield();
+    if (Time::Now < 60000)
+        sleep(1000);
 
-    startnew(LoadAllPlayerMedalCounts);
+    LoadAllPlayerMedalCounts();
+    yield();
+    State::TryRestoringSessionData();
 }
 
 string lastMap;
@@ -185,9 +189,12 @@ void AddSimpleTooltip(const string &in msg) {
 
 
 void OnDestroyed() { _Unload(); }
-void OnDisabled() { _Unload(); }
+// void OnDisabled() { _Unload(); }
 void _Unload() {
     Chat::Unload();
+    if (!State::IsNotRunning) {
+        State::PersistTemporarySession();
+    }
 }
 
 

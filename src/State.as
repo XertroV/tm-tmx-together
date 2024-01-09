@@ -32,6 +32,7 @@ enum NextMapCondTrigger {
 
 namespace State {
     GameState currState = GameState::NotRunning;
+    const string sessionSaveFile = IO::FromStorageFolder("session.json");
 
     uint clubId;
     uint roomId;
@@ -161,6 +162,8 @@ namespace State {
             Chat::SendGoodMessage("Tyler_Mayhem is really cool");
         } else if (bestPlayer.WebServicesUserId == "73fbc796-2a6f-472f-a130-818ab5ee4618") { // lakanta
             Chat::SendGoodMessage("gz Lakanta! Hopefully not last. lakant2Speed lakant2Speed lakant2Speed");
+        } else if (bestPlayer.WebServicesUserId == "0a2d1bc0-4aaa-4374-b2db-3d561bdab1c9") { // xertrov
+            // Chat::SendMessage("");
         }
         CachePlayerMedals(rd);
     }
@@ -571,6 +574,51 @@ namespace State {
         wrTime = -1;
         wrError = false;
     }
+
+    void PersistTemporarySession() {
+        // save session data to file
+        auto j = Json::Object();
+        auto list = Json::Array();
+        for (uint i = 0; i < SortedPlayerMedals.Length; i++) {
+            auto p = SortedPlayerMedals[i];
+            if (p.mapCountSession == 0) continue;
+            list.Add(SortedPlayerMedals[i].SessionSummaryForSaving());
+        }
+        if (list.Length == 0) {
+            // there was nothing to save. exit to avoid overwriting file during dev.
+            return;
+        }
+        j['scores'] = list;
+        j['ts'] = Time::Stamp;
+        j['mapId'] = S_LastTmxID;
+        Json::ToFile(sessionSaveFile, j);
+    }
+
+    void TryRestoringSessionData() {
+        if (IO::FileExists(sessionSaveFile)) {
+            trace('trying to restore from session (save file exists)');
+            auto j = Json::FromFile(sessionSaveFile);
+            try {
+                int64 saveTs = j['ts'];
+                int mapId = j['mapId'];
+                auto scores = j['scores'];
+                if (saveTs + 300 > Time::Stamp) {
+                    for (uint i = 0; i < scores.Length; i++) {
+                        auto item = scores[i];
+                        string name = item['name'];
+                        string login = item['login'];
+                        auto pmc = GetPlayerMedalCountFor(name, login);
+                        pmc.LoadFromSessionSummary(item);
+                    }
+                } else {
+                    NotifyWarning("Found session save file but not restoring as it was created more than 5 minutes ago.");
+                }
+                //IO::Delete(sessionSaveFile);
+            } catch {
+                NotifyError("Exception while restoring session save file: " + getExceptionInfo());
+            }
+        }
+    }
 }
 
     // void SetNextRoomRounds() {
@@ -618,6 +666,7 @@ class PlayerMedalCount {
     uint[] medalCounts = {0, 0, 0, 0, 0, 0};
     uint[] lifetimeMedalCounts = {0, 0, 0, 0, 0, 0};
     uint mapCount = 0;
+    uint mapCountSession = 0;
     vec4 col = vec4(1);
     uint firstSeen;
     uint lastSeen;
@@ -686,6 +735,22 @@ class PlayerMedalCount {
         return FromJson(j);
     }
 
+    Json::Value@ SessionSummaryForSaving() {
+        auto j = Json::Object();
+        j['name'] = name;
+        j['login'] = login;
+        j['medals'] = this.medalCounts.ToJson();
+        j['maps'] = mapCountSession;
+        return j;
+    }
+
+    void LoadFromSessionSummary(Json::Value@ j) {
+        mapCountSession = j['maps'];
+        for (uint i = 0; i < j['medals'].Length; i++) {
+            medalCounts[i] = j['medals'][i];
+        }
+    }
+
     uint get_NbWRs() {
         return medalCounts[0];
     }
@@ -726,6 +791,7 @@ class PlayerMedalCount {
 
     void AddMedal(Medal m) {
         mapCount++;
+        mapCountSession++;
         medalCounts[int(m)]++;
         lifetimeMedalCounts[int(m)]++;
         lastSeen = Time::Stamp;
@@ -770,7 +836,7 @@ class PlayerMedalCount {
         nvg::ClosePath();
     }
 
-    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, uint[]@ mc = null) {
+    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, uint[]@ mc = null, bool lifetimeMapCount = false) {
         if (mc is null) @mc = medalCounts;
         auto textOffset = vec2(0, fontSize * .15);
         nvg::BeginPath();
@@ -796,12 +862,12 @@ class PlayerMedalCount {
         auto fs = mapCount < 1000 ? fontSize : fontSize * .7;
         nvg::FontSize(fs);
         nvg::FillColor(col * vec4(1, 1, 1, alpha));
-        nvg::Text(medalStart + vec2(medalSpacing * float(mc.Length), hOff) + textOffset, tostring(mapCount));
+        nvg::Text(medalStart + vec2(medalSpacing * float(mc.Length), hOff) + textOffset, tostring(lifetimeMapCount ? mapCount : mapCountSession));
         nvg::ClosePath();
     }
 
     void DrawCompactLifeTime(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0) {
-        DrawCompact(rank, pos, nameWidth, medalSpacing, fontSize, alpha, lifetimeMedalCounts);
+        DrawCompact(rank, pos, nameWidth, medalSpacing, fontSize, alpha, lifetimeMedalCounts, true);
     }
 }
 

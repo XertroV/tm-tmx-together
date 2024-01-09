@@ -94,6 +94,13 @@ namespace Chat {
         else if (text == "-") OnVote(e, -1);
         else if (text == "++") OnVote(e, 2);
         else if (text == "--") OnVote(e, -2);
+        else if (text == "+++") OnVote(e, 3);
+        else if (text == "---") OnVote(e, -3);
+        // else if (text == "3") OnMeme3(e);
+        // else if (text == "69") OnMeme69(e);
+        // else if (text == "420") OnMeme420(e);
+        // else if (text == "42069") OnMeme42069(e);
+        // else if (text == "69420") OnMeme69420(e);
         else if (CommandExists(text)) RunCommand(text);
     }
 

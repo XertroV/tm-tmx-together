@@ -233,7 +233,7 @@ void RunMyScoreBuiltinCmd() {
     else {
         int goatNumber = State::GOATPlayerMedals.FindByRef(pmc) + 1;
         if (goatNumber <= 0) goatNumber = State::GOATPlayerMedals.Length;
-        ret += pmc.GetSummaryStr() + " / " + pmc.GetLifetimeSummaryStr(false) + " / Maps: " + pmc.mapCount + " / GOAT #: " + goatNumber;
+        ret += pmc.GetSummaryStr() + " / " + pmc.GetLifetimeSummaryStr(false) + " / Maps: ( " + pmc.mapCountSession + ", " + pmc.mapCount + " ) / GOAT #: $o$s" + goatNumber;
     }
     Chat::SendMessage(ret);
 }
@@ -243,7 +243,7 @@ void RunXertroVBuiltinCmd() {
 }
 
 void RunVersionBuiltinCmd() {
-    Chat::SendMessage("Version: " + Meta::ExecutingPlugin().Version + " / version nonce: " + "1");
+    Chat::SendMessage("Version: " + Meta::ExecutingPlugin().Version + " / version nonce: " + "2");
 }
 
 [Setting hidden]
