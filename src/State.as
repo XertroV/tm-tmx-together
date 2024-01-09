@@ -132,10 +132,12 @@ namespace State {
             bool playerGotWR = IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId)
                 && bestPlayer.BestTime < (rd.Rules_GameTime - rd.Rules_StartTime)
                 && rd.Rules_StartTime < 200000000;
-            if (playerGotWR || true) {
+            if (playerGotWR) {
+                Notify("detected player WR: " + bestPlayer.Name + ", " + bestPlayer.BestTime + ", wr: " + wrTime);
                 triggeredAuto120 = true;
                 wrMapUid = lastMap;
                 Chat::SendMessage("$s$o$f5b"+Icons::Star+" WR by " + bestPlayer.Name + "! BWOAH");
+                yield();
                 auto timeLeft = GetSecondsLeft();
                 if (timeLeft > int(S_AutoMoveOnInSeconds))
                     startnew(State::AutoMoveOn);

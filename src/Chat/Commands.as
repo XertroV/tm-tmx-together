@@ -243,7 +243,7 @@ void RunXertroVBuiltinCmd() {
 }
 
 void RunVersionBuiltinCmd() {
-    Chat::SendMessage("Version: " + Meta::ExecutingPlugin().Version + " / version nonce: " + "2");
+    Chat::SendMessage("Version: " + Meta::ExecutingPlugin().Version + " / version nonce: " + "3");
 }
 
 [Setting hidden]
