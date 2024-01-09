@@ -128,14 +128,14 @@ namespace State {
             auto rd = MLFeed::GetRaceData_V4();
             auto @players = rd.SortedPlayers_TimeAttack;
             if (players.Length == 0) continue;
-            auto bestPlayer = players[0];
-            if (IsPlayerTimeWR(bestPlayer.BestTime)
+            auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(players[0]);
+            bool playerGotWR = IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId)
                 && bestPlayer.BestTime < (rd.Rules_GameTime - rd.Rules_StartTime)
-                && rd.Rules_StartTime < 200000000
-            ) {
+                && rd.Rules_StartTime < 200000000;
+            if (playerGotWR || true) {
                 triggeredAuto120 = true;
                 wrMapUid = lastMap;
-                Chat::SendMessage("$s$o$f3a WR by " + bestPlayer.Name + "! BWOAH");
+                Chat::SendMessage("$s$o$f5b"+Icons::Star+" WR by " + bestPlayer.Name + "! BWOAH");
                 auto timeLeft = GetSecondsLeft();
                 if (timeLeft > int(S_AutoMoveOnInSeconds))
                     startnew(State::AutoMoveOn);
@@ -154,17 +154,17 @@ namespace State {
         auto rd = MLFeed::GetRaceData_V4();
         if (rd.SortedPlayers_TimeAttack.Length == 0) return;
         auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(rd.SortedPlayers_TimeAttack[0]);
-        bool isWR = IsPlayerTimeWR(bestPlayer.BestTime);
+        bool isWR = IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId);
         auto medalStr = isWR ? "$<$f19$oWorld Record!!!$>" : GetMedalStringForTime(bestPlayer.BestTime);
         string msg = "gz " + bestPlayer.Name + " (" + Time::Format(bestPlayer.BestTime) + " - " + medalStr + ")";
-        Chat::SendGoodMessage(msg);
         if (bestPlayer.WebServicesUserId == "a2f0675a-8d25-4db7-9be5-d2ce8902b8cc") { // tyler mayhem
-            Chat::SendGoodMessage("Tyler_Mayhem is really cool");
+            msg += (" $f19 Tyler_Mayhem is really cool");
         } else if (bestPlayer.WebServicesUserId == "73fbc796-2a6f-472f-a130-818ab5ee4618") { // lakanta
-            Chat::SendGoodMessage("gz Lakanta! Hopefully not last. lakant2Speed lakant2Speed lakant2Speed");
-        } else if (bestPlayer.WebServicesUserId == "0a2d1bc0-4aaa-4374-b2db-3d561bdab1c9") { // xertrov
-            // Chat::SendMessage("");
+            msg += (" $7f7 gz Lakanta! Hopefully not last. lakant2Speed lakant2Speed lakant2Speed");
+        } else if (bestPlayer.WebServicesUserId == XertroV_WSID) { // xertrov
+            msg += "  $aaa$iShirley not rigged.";
         }
+        Chat::SendGoodMessage(msg);
         CachePlayerMedals(rd);
     }
 #else
@@ -192,7 +192,7 @@ namespace State {
             if (pmc is null) continue;
             // todo: check if WR, if so, add to medal 0
             auto playerTime = player.BestTime;
-            if (i == 0 && IsPlayerTimeWR(playerTime) && !wrError) {
+            if (i == 0 && IsPlayerTimeWR(playerTime, player.WebServicesUserId) && !wrError) {
                 pmc.AddMedal(Medal::WR);
             } else {
                 pmc.AddMedal(GetMedalForTime(uint(player.bestTime)));
@@ -202,8 +202,9 @@ namespace State {
     }
 
     // only checks if better than WR for curr map
-    bool IsPlayerTimeWR(int playerTime) {
-        return playerTime > 0 && (playerTime < wrTime || wrTime < 0) && wrUid == lastMap;
+    bool IsPlayerTimeWR(int playerTime, const string &in wsid = "default-no-match-existing") {
+        bool isTimeLt = playerTime < wrTime || (playerTime == wrTime && wrAcct == wsid);
+        return playerTime > 0 && (isTimeLt || wrTime < 0) && wrUid == lastMap && wrHasLoaded;
     }
 
     PlayerMedalCount@ AddNewPMC(const string &in name, const string &in login) {
@@ -343,6 +344,7 @@ namespace State {
             Chat::SendWarningMessage("Loading Next Map...");
             UpdateNextMap();
             if (!CheckUploadedToNadeo()) {
+                yield();
                 Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
                 S_LastTmxID = loadNextId;
                 LoadNextTmxMap();
@@ -548,8 +550,10 @@ namespace State {
     }
 
     string wrUid;
+    string wrAcct;
     int wrTime;
     bool wrError = false;
+    bool wrHasLoaded = false;
 
     void TryGettingWR() {
         // try getting the WR for this map
@@ -558,10 +562,12 @@ namespace State {
             auto j = Live::GetMapRecordsMeat("Personal_Best", lastMap);
             if (j.Length > 0) {
                 wrTime = j[0]['score'];
+                wrAcct = j[0]['accountId'];
                 trace("WR time: " + wrTime);
             } else {
                 trace("No WR time");
             }
+            wrHasLoaded = true;
             wrUid = lastMap;
         } catch {
             NotifyError("Exception updating WR for this map: " + getExceptionInfo());
@@ -571,8 +577,10 @@ namespace State {
 
     void ResetWR() {
         wrUid = "nil";
+        wrAcct = "";
         wrTime = -1;
         wrError = false;
+        wrHasLoaded = false;
     }
 
     void PersistTemporarySession() {
