@@ -909,10 +909,16 @@ vec4[] medalColors = {
 void LoadAllPlayerMedalCounts() {
     auto usersFolder = IO::FromStorageFolder("users/");
     auto files = IO::IndexFolder(usersFolder, false);
+    Notify("Loading " + files.Length + " player medal counts.");
     for (uint i = 0; i < files.Length; i++) {
         if (!files[i].EndsWith(".json")) continue;
         State::LoadPMC(files[i]);
+        if (i % 100 == 0) {
+            Notify("Loaded " + (i + 1) + " / " + files.Length);
+        }
+        yield();
     }
+    yield();
     State::UpdateSortedPlayerMedals();
 }
 

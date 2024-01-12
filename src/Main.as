@@ -35,9 +35,12 @@ void Main() {
     if (Time::Now < 60000)
         sleep(1000);
 
+    Notify("Loading Player Medal Counts");
     LoadAllPlayerMedalCounts();
+    Notify("Done Loading Player Medal Counts. Checking for Session Data to restore.");
     yield();
     State::TryRestoringSessionData();
+    Notify("Done restoring session data. TMX Together is now initialized.");
 }
 
 string lastMap;
