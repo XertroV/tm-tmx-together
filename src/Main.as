@@ -251,8 +251,25 @@ uint GetRulesEndTime() {
     return uint(cp.Arena.Rules.RulesStateEndTime);
 }
 
+SGamePlaygroundUIConfig::EUISequence CurrentUISequence() {
+    try {
+        auto cp = cast<CSmArenaClient>(GetApp().CurrentPlayground);
+        return cp.GameTerminals[0].UISequence_Current;
+    } catch {}
+    return SGamePlaygroundUIConfig::EUISequence::None;
+}
+
+bool IsSequencePlayingOrFinished() {
+    auto seq = CurrentUISequence();
+    return seq == SGamePlaygroundUIConfig::EUISequence::Playing || seq == SGamePlaygroundUIConfig::EUISequence::Finish;
+}
+
+bool IsSequencePlaying() {
+    return CurrentUISequence() == SGamePlaygroundUIConfig::EUISequence::Playing;
+}
+
 int GetSecondsLeft() {
-    return (int(GetRulesEndTime()) - int(GetRulesStartTime())) / 1000;
+    return (int64(GetRulesEndTime()) - int64(GetRulesStartTime())) / 1000;
 }
 
 string GetMapUid() {

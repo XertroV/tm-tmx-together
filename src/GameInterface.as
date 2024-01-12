@@ -90,6 +90,11 @@ class GameInterface {
         if (UI::Button("Edit Scores")) {
             ScoreEditor::windowVisible = !ScoreEditor::windowVisible;
         }
+        UI::SameLine();
+        if (UI::Button("Sort")) {
+            startnew(State::UpdateSortedPlayerMedals);
+        }
+        UI::Separator();
         if (UI::CollapsingHeader("Current Runs")) {
 #if DEPENDENCY_MLFEEDRACEDATA
             UI::Indent();

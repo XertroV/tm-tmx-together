@@ -33,6 +33,7 @@ enum NextMapCondTrigger {
 namespace State {
     GameState currState = GameState::NotRunning;
     const string sessionSaveFile = IO::FromStorageFolder("session.json");
+    const string sessionOldSaveFile = IO::FromStorageFolder("session-old.json");
 
     uint clubId;
     uint roomId;
@@ -118,7 +119,6 @@ namespace State {
         if (wrWatchRunning) return;
         wrWatchRunning = true;
         string wrMapUid;
-        bool triggeredAuto120 = false;
         while (currState != GameState::NotRunning) {
             sleep(500);
             if (!S_AutoMoveOnForWR) continue;
@@ -128,22 +128,27 @@ namespace State {
             auto rd = MLFeed::GetRaceData_V4();
             auto @players = rd.SortedPlayers_TimeAttack;
             if (players.Length == 0) continue;
+            if (!IsSequencePlayingOrFinished()) continue;
             auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(players[0]);
             bool playerGotWR = IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId)
                 && bestPlayer.BestTime < (rd.Rules_GameTime - rd.Rules_StartTime)
                 && rd.Rules_StartTime < 200000000;
             if (playerGotWR) {
                 Notify("detected player WR: " + bestPlayer.Name + ", " + bestPlayer.BestTime + ", wr: " + wrTime);
-                triggeredAuto120 = true;
                 wrMapUid = lastMap;
                 Chat::SendMessage("$s$o$f5b"+Icons::Star+" WR by " + bestPlayer.Name + "! BWOAH");
                 yield();
                 auto timeLeft = GetSecondsLeft();
-                if (timeLeft > int(S_AutoMoveOnInSeconds))
+                Notify("WR timeleft check: if " + timeLeft + " > " + S_AutoMoveOnInSeconds + " then move on.");
+                if (timeLeft > int(S_AutoMoveOnInSeconds)) {
+                    if (currState == GameState::Loading) {
+                        Notify("Waiting for loading to finish before auto moving on.");
+                        while (currState == GameState::Loading) yield();
+                    }
                     startnew(State::AutoMoveOn);
+                }
                 while (wrMapUid == lastMap) yield();
-                triggeredAuto120 = false;
-                wrMapUid = "";
+                sleep(15000);
             }
         }
         wrWatchRunning = false;
@@ -623,7 +628,8 @@ namespace State {
                 } else {
                     NotifyWarning("Found session save file but not restoring as it was created more than 5 minutes ago.");
                 }
-                //IO::Delete(sessionSaveFile);
+                if (IO::FileExists(sessionOldSaveFile)) IO::Delete(sessionOldSaveFile);
+                IO::Move(sessionSaveFile, sessionOldSaveFile);
             } catch {
                 NotifyError("Exception while restoring session save file: " + getExceptionInfo());
             }
