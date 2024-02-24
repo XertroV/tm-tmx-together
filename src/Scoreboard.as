@@ -115,22 +115,22 @@ void DrawAltPlayerMedalCounts() {
 
     nextPos = vec2(xStart + colWidth + pmcPad.x * 3, yStart);
 
-    DrawAltHeading("New Players", nextPos, nameWidth, medalSpacing, fontSize);
-    nextPos.y += linePxHeight;
+    // DrawAltHeading("New Players", nextPos, nameWidth, medalSpacing, fontSize);
+    // nextPos.y += linePxHeight;
 
 
-    for (int i = 0; i < nbOtherRows; i++) {
-        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::NewestPlayerMedals[i]);
-        if (pmc is null) continue;
-        pmc.DrawCompact(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
-        nextPos.y += linePxHeight;
-    }
+    // for (int i = 0; i < nbOtherRows; i++) {
+    //     PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::NewestPlayerMedals[i]);
+    //     if (pmc is null) continue;
+    //     pmc.DrawCompact(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
+    //     nextPos.y += linePxHeight;
+    // }
 
-    nextPos.y += linePxHeight;
+    // nextPos.y += linePxHeight;
     DrawAltHeading("GOAT Players", nextPos, nameWidth, medalSpacing, fontSize);
     nextPos.y += linePxHeight;
 
-    for (int i = 0; i < nbOtherRows; i++) {
+    for (int i = 0; i < nbPlayers; i++) {
         PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[i]);
         if (pmc is null) continue;
         pmc.DrawCompactLifeTime(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
