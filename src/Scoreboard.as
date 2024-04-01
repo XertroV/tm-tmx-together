@@ -153,10 +153,11 @@ void DrawAltPlayerMedalCounts() {
     nextPos = vec2(xStart + colWidthWPadding * 2., yStart);
 
     for (int i = 0; i < nbPlayers; i++) {
-        if (i + priorGoatRows >= nbGoats) break;
-        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[i + priorGoatRows]);
+        auto ix = priorGoatRows + i;
+        if (ix >= nbGoats) break;
+        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[ix]);
         if (pmc is null) continue;
-        pmc.DrawCompactLifeTime(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
+        pmc.DrawCompactLifeTime(ix + 1, nextPos, nameWidth, medalSpacing, fontSize);
         nextPos.y += linePxHeight;
     }
 
@@ -165,10 +166,11 @@ void DrawAltPlayerMedalCounts() {
     priorGoatRows += nbPlayers;
 
     for (int i = 0; i < nbPlayers; i++) {
-        if (i + priorGoatRows >= nbGoats) break;
-        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[i + priorGoatRows]);
+        auto ix = priorGoatRows + i;
+        if (ix >= nbGoats) break;
+        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[ix]);
         if (pmc is null) continue;
-        pmc.DrawCompactLifeTime(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
+        pmc.DrawCompactLifeTime(ix + 1, nextPos, nameWidth, medalSpacing, fontSize);
         nextPos.y += linePxHeight;
     }
 }
