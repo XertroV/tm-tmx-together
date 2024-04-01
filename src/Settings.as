@@ -83,6 +83,10 @@ void Render_Settings_DevTab() {
     dev_showScoreboard = UI::Checkbox("Show scoreboard", dev_showScoreboard);
     if (dev_showScoreboard) g_LastLoadingScreen = Time::Now - 2900;
 
+    if (UI::Button("Test GetWSIDToCustomMessage")) {
+        Notify("Xert msg: " + GetWSIDToCustomMessage(XertroV_WSID));
+    }
+
     UI::AlignTextToFramePadding();
     UI::Text("Curr State: " + tostring(State::currState));
 
