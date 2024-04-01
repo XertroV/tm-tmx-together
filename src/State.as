@@ -872,37 +872,40 @@ class PlayerMedalCount {
 
     void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, uint[]@ mc = null, bool lifetimeMapCount = false) {
         if (mc is null) @mc = medalCounts;
+        string nameLabel = tostring(rank) + ". " + name;
+        auto maxNameWidth = nameWidth - pmcPad.x;
 
         auto textOffset = vec2(0, fontSize * .15);
         nvg::BeginPath();
         nvg::FontSize(fontSize);
         nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
-        auto textBounds = nvg::TextBounds(name);
+        auto textBounds = nvg::TextBounds(nameLabel);
 
-        float xScale = textBounds.x > nameWidth ? Math::Max(0.1, nameWidth / textBounds.x) : 1;
+        float xScale = textBounds.x > maxNameWidth ? Math::Max(0.1, maxNameWidth / textBounds.x) : 1;
 
         nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
-        vec2 bounds = vec2(nameWidth + medalSpacing * (nbMedalsToDraw + 1), pmcPad.y * 2. + fontSize);
+        vec2 bounds = vec2(nameWidth + medalSpacing * f_nbMedalsToDraw, pmcPad.y * 2. + fontSize);
         nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
         nvg::Fill();
         nvg::FillColor(col * vec4(1, 1, 1, alpha));
 
         nvg::Scale(vec2(xScale, 1));
-        nvg::Text((pos + pmcPad + textOffset) * vec2(1. / xScale, 1.), tostring(rank) + ". " + name);
+        nvg::Text((pos + pmcPad + textOffset) * vec2(1. / xScale, 1.), nameLabel);
         nvg::Scale(vec2(1. / xScale, 1));
 
         auto medalStart = pos + pmcPad + vec2(nameWidth, 0);
 
+        float fs, hOff;
         for (uint i = 0; i < nbMedalsToDraw; i++) {
             auto c = mc[i];
-            auto fs = c < 100 ? fontSize : c < 1000 ? fontSize * .8 : fontSize * .6;
-            auto hOff = c < 100 ? 0. : c < 1000 ? fontSize * .1 : fontSize * .2;
+            fs = c < 100 ? fontSize * 0.95 : c < 1000 ? fontSize * .72 : fontSize * .60;
+            hOff = c < 100 ? 0. : c < 1000 ? fontSize * .1 : fontSize * .2;
             nvg::FontSize(fs);
             nvg::FillColor(medalColors[i] * vec4(1, 1, 1, alpha));
             nvg::Text(medalStart + vec2(medalSpacing * float(i), hOff) + textOffset, tostring(mc[i]));
         }
-        auto hOff = mapCount < 1000 ? 0 : fontSize * .15;
-        auto fs = mapCount < 1000 ? fontSize : fontSize * .7;
+        fs = mapCount < 100 ? fontSize * 0.95 : mapCount < 1000 ? fontSize * .72 : fontSize * .60;
+        hOff = mapCount < 100 ? 0. : mapCount < 1000 ? fontSize * .1 : fontSize * .2;
         nvg::FontSize(fs);
         nvg::FillColor(col * vec4(1, 1, 1, alpha));
         nvg::Text(medalStart + vec2(medalSpacing * float(nbMedalsToDraw), hOff) + textOffset, tostring(lifetimeMapCount ? mapCount : mapCountSession));

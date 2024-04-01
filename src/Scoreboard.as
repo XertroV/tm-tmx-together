@@ -103,7 +103,7 @@ void DrawAltPlayerMedalCounts() {
     float fullHeight = h * (playerPropHeight * float(nbPlayers));
     float yStart = (h - fullHeight) / 2.;
     vec2 nextPos = vec2(xStart, yStart);
-    float playerPropWidth = 2. / 3.;
+    float playerPropWidth = 0.6;
     float nameWidth = colWidth * playerPropWidth;
     float medalSpacing = colWidth * (1. - playerPropWidth) / f_nbMedalsToDraw;
 
