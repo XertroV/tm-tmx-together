@@ -20,3 +20,12 @@ GL HF
 Todo:
 - json not object error when request fails, see lakanta stream 2023-10-14
  at 3:06:00 ish -- logs brought up
+- lots of players, slower start?
+- add global stats
+- show more goat list: just WRs / ATs / Gs, and more columns
+
+
+
+
+- [ ] kora - "Was there a cut?"
+- [ ] kora -

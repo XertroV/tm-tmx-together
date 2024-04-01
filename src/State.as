@@ -164,12 +164,19 @@ namespace State {
         bool isWR = IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId);
         auto medalStr = isWR ? "$<$f19$oWorld Record!!!$>" : GetMedalStringForTime(bestPlayer.BestTime);
         string msg = "gz " + bestPlayer.Name + " (" + Time::Format(bestPlayer.BestTime) + " - " + medalStr + ")";
-        if (bestPlayer.WebServicesUserId == "a2f0675a-8d25-4db7-9be5-d2ce8902b8cc") { // tyler mayhem
+        string m = GetWSIDToCustomMessage(bestPlayer.WebServicesUserId);
+        if (m.Length > 0) {
+            msg += " " + m;
+        } else if (bestPlayer.WebServicesUserId == Tyler_WSID) { // tyler mayhem
             msg += (" $f19 Tyler_Mayhem is really cool");
-        } else if (bestPlayer.WebServicesUserId == "73fbc796-2a6f-472f-a130-818ab5ee4618") { // lakanta
+        } else if (bestPlayer.WebServicesUserId == Lakanta_WSID) { // lakanta
             msg += (" $7f7 gz Lakanta! Hopefully not last. lakant2Speed lakant2Speed lakant2Speed");
         } else if (bestPlayer.WebServicesUserId == XertroV_WSID) { // xertrov
-            msg += "  $aaa$iShirley not rigged.";
+            msg += " $aaa$iShirley not rigged.";
+        } else if (bestPlayer.WebServicesUserId == Noimad_WSID) {
+            msg += " $S$229BEDGE";
+        } else if (bestPlayer.WebServicesUserId == Kora_WSID) {
+            msg += " $zWas there a cut?";
         }
         Chat::SendGoodMessage(msg);
         CachePlayerMedals(rd);
@@ -187,6 +194,14 @@ namespace State {
             return cast<PlayerMedalCount>(PlayerMedalCounts[login]);
         }
         return AddNewPMC(name, login);
+    }
+
+    // can return null
+    PlayerMedalCount@ FindPlayerMedalCountFor(const string &in login) {
+        if (PlayerMedalCounts.Exists(login)) {
+            return cast<PlayerMedalCount>(PlayerMedalCounts[login]);
+        }
+        return null;
     }
 
     void CachePlayerMedals(const MLFeed::HookRaceStatsEventsBase_V4@ rd) {

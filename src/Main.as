@@ -41,6 +41,7 @@ void Main() {
     yield();
     State::TryRestoringSessionData();
     Notify("Done restoring session data. TMX Together is now initialized.");
+    LoadCustomFinishMessages();
 }
 
 string lastMap;

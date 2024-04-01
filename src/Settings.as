@@ -73,11 +73,11 @@ bool dev_showScoreboard = false;
 [SettingsTab name="Debug" order="99"]
 void Render_Settings_DevTab() {
     if (UI::Button("Load ALL player medal counts")) {
-        LoadAllPlayerMedalCounts();
+        startnew(LoadAllPlayerMedalCounts);
     }
 
     if (UI::Button("Load just GOAT player medal counts")) {
-        LoadGOATPlayerMedalCounts();
+        startnew(LoadGOATPlayerMedalCounts);
     }
 
     dev_showScoreboard = UI::Checkbox("Show scoreboard", dev_showScoreboard);
