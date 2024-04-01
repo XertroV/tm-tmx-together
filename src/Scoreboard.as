@@ -5,8 +5,7 @@ void DrawPMCHeadings(vec2 &in pos, float nameWidth, float medalSpacing, float fo
     nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
 
     nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
-    float nbCols = 7.;
-    vec2 bounds = vec2(nameWidth + medalSpacing * nbCols, pmcPad.y * 2. + fontSize);
+    vec2 bounds = vec2(nameWidth + medalSpacing * f_nbMedalsToDraw, pmcPad.y * 2. + fontSize);
     nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
     nvg::Fill();
     nvg::FillColor(vec4(.8, .8, .8, 1) * vec4(1, 1, 1, alpha));
@@ -40,38 +39,40 @@ void DrawPlayerMedalCounts() {
     auto @pmcs = State::SortedPlayerMedals;
     nvg::FontFace(nvgFont);
 
-    if (pmcs.Length > 10 || true) {
-        DrawAltPlayerMedalCounts();
-        return;
-    }
+    DrawAltPlayerMedalCounts();
+    return;
+    // if (pmcs.Length > 10 || true) {
+    //     DrawAltPlayerMedalCounts();
+    //     return;
+    // }
 
-    float h = Draw::GetHeight();
-    float w = Draw::GetWidth();
-    // 1 extra for heading
-    auto nbPlayers = pmcs.Length + 1;
-    auto propYPad = 0.15;
-    float playerPropHeight = (1.0 - propYPad * 2.) / Math::Max(20., float(nbPlayers));
-    float linePxHeight = playerPropHeight * h;
-    float fontSize = (linePxHeight - pmcPad.y * 2.);
-    linePxHeight *= 1.2;
-    float fullWidth = h * 1.2;
-    float xStart = (w - fullWidth) / 2.;
-    float fullHeight = h * (playerPropHeight * float(nbPlayers));
-    float yStart = (h - fullHeight) / 2.;
-    vec2 nextPos = vec2(xStart, yStart);
-    float playerPropWidth = 1. / 4.;
-    float nameWidth = fullWidth * playerPropWidth;
-    float medalSpacing = fullWidth * (1. - playerPropWidth) / 6.; // * 2. / 3. / 6.
+    // float h = Draw::GetHeight();
+    // float w = Draw::GetWidth();
+    // // 1 extra for heading
+    // auto nbPlayers = pmcs.Length + 1;
+    // auto propYPad = 0.15;
+    // float playerPropHeight = (1.0 - propYPad * 2.) / Math::Max(20., float(nbPlayers));
+    // float linePxHeight = playerPropHeight * h;
+    // float fontSize = (linePxHeight - pmcPad.y * 2.);
+    // linePxHeight *= 1.2;
+    // float fullWidth = h * 1.2;
+    // float xStart = (w - fullWidth) / 2.;
+    // float fullHeight = h * (playerPropHeight * float(nbPlayers));
+    // float yStart = (h - fullHeight) / 2.;
+    // vec2 nextPos = vec2(xStart, yStart);
+    // float playerPropWidth = 1. / 4.;
+    // float nameWidth = fullWidth * playerPropWidth;
+    // float medalSpacing = fullWidth * (1. - playerPropWidth) / 6.; // * 2. / 3. / 6.
 
-    DrawPMCHeadings(nextPos, nameWidth, medalSpacing, fontSize);
-    nextPos.y += linePxHeight;
+    // DrawPMCHeadings(nextPos, nameWidth, medalSpacing, fontSize);
+    // nextPos.y += linePxHeight;
 
-    for (uint i = 0; i < pmcs.Length; i++) {
-        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(pmcs[i]);
-        if (pmc is null) continue;
-        pmc.Draw(nextPos, nameWidth, medalSpacing, fontSize);
-        nextPos.y += linePxHeight;
-    }
+    // for (uint i = 0; i < pmcs.Length; i++) {
+    //     PlayerMedalCount@ pmc = cast<PlayerMedalCount>(pmcs[i]);
+    //     if (pmc is null) continue;
+    //     pmc.Draw(nextPos, nameWidth, medalSpacing, fontSize);
+    //     nextPos.y += linePxHeight;
+    // }
 }
 
 
@@ -84,6 +85,7 @@ void DrawAltPlayerMedalCounts() {
     auto nbOtherRows = Math::Min(pmcs.Length, 5);
     auto nbGoatRows = Math::Min(State::GOATPlayerMedals.Length, 5);
     // nbRows = Math::Max(nbRows, nbOtherRows + nbGoatRows + 3);
+    int nbCols = 4;
 
     float h = Draw::GetHeight();
     float w = Draw::GetWidth();
@@ -91,18 +93,21 @@ void DrawAltPlayerMedalCounts() {
     float playerPropHeight = (1.0 - propYPad * 2.) / float(nbRows);
     float linePxHeight = playerPropHeight * h;
     float fontSize = (linePxHeight - pmcPad.y * 2.) / 1.3;
-    float fullWidth = h * 1.4;
-    float colWidth = fullWidth / 2. - pmcPad.x * 1.5;
+    float fullWidth = Math::Max(h * 1.5, w * 0.8);
+#if DEV
+    // fullWidth /= 2.0;
+#endif
+    float colWidth = fullWidth / float(nbCols) - pmcPad.x * 1.5;
 
     float xStart = (w - fullWidth) / 2.;
     float fullHeight = h * (playerPropHeight * float(nbPlayers));
     float yStart = (h - fullHeight) / 2.;
     vec2 nextPos = vec2(xStart, yStart);
-    float playerPropWidth = 1. / 2.;
+    float playerPropWidth = 2. / 3.;
     float nameWidth = colWidth * playerPropWidth;
-    float medalSpacing = colWidth * (1. - playerPropWidth) / 7.;
+    float medalSpacing = colWidth * (1. - playerPropWidth) / f_nbMedalsToDraw;
 
-    DrawAltHeading("Top Players", nextPos, nameWidth, medalSpacing, fontSize);
+    DrawAltHeading("Session Top", nextPos, nameWidth, medalSpacing, fontSize);
     nextPos.y += linePxHeight;
 
     nbPlayers = Math::Min(nbPlayers, pmcs.Length);
@@ -112,8 +117,9 @@ void DrawAltPlayerMedalCounts() {
         pmc.DrawCompact(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
         nextPos.y += linePxHeight;
     }
+    float colWidthWPadding = colWidth + pmcPad.x * 3;
 
-    nextPos = vec2(xStart + colWidth + pmcPad.x * 3, yStart);
+    nextPos = vec2(xStart + colWidthWPadding, yStart);
 
     // DrawAltHeading("New Players", nextPos, nameWidth, medalSpacing, fontSize);
     // nextPos.y += linePxHeight;
@@ -126,6 +132,8 @@ void DrawAltPlayerMedalCounts() {
     //     nextPos.y += linePxHeight;
     // }
 
+    auto nbGoats = State::GOATPlayerMedals.Length;
+
     // nextPos.y += linePxHeight;
     DrawAltHeading("GOAT Players", nextPos, nameWidth, medalSpacing, fontSize);
     nextPos.y += linePxHeight;
@@ -136,8 +144,39 @@ void DrawAltPlayerMedalCounts() {
         pmc.DrawCompactLifeTime(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
         nextPos.y += linePxHeight;
     }
+
+    // add 1 to players here because we don't draw a heading
+    auto priorGoatRows = nbPlayers;
+    nbPlayers += 1;
+
+    // col 3, more GOATs
+    nextPos = vec2(xStart + colWidthWPadding * 2., yStart);
+
+    for (int i = 0; i < nbPlayers; i++) {
+        if (i + priorGoatRows >= nbGoats) break;
+        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[i + priorGoatRows]);
+        if (pmc is null) continue;
+        pmc.DrawCompactLifeTime(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
+        nextPos.y += linePxHeight;
+    }
+
+    // col 4, more GOATs
+    nextPos = vec2(xStart + colWidthWPadding * 3., yStart);
+    priorGoatRows += nbPlayers;
+
+    for (int i = 0; i < nbPlayers; i++) {
+        if (i + priorGoatRows >= nbGoats) break;
+        PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[i + priorGoatRows]);
+        if (pmc is null) continue;
+        pmc.DrawCompactLifeTime(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
+        nextPos.y += linePxHeight;
+    }
 }
 
+// this is +1 because we draw nb. played maps too
+float f_nbMedalsToDraw = 4.;
+// set to mc.Length to draw all medals
+uint nbMedalsToDraw = 3;
 
 void DrawAltHeading(const string &in title, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0) {
     nvg::BeginPath();
@@ -145,8 +184,7 @@ void DrawAltHeading(const string &in title, vec2 &in pos, float nameWidth, float
     nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
 
     nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
-    float nbCols = 7.;
-    vec2 bounds = vec2(nameWidth + medalSpacing * nbCols, pmcPad.y * 2. + fontSize);
+    vec2 bounds = vec2(nameWidth + medalSpacing * f_nbMedalsToDraw, pmcPad.y * 2. + fontSize);
     nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
     nvg::Fill();
     nvg::FillColor(vec4(.8, .8, .8, 1) * vec4(1, 1, 1, alpha));

@@ -82,5 +82,16 @@ void Render_Settings_DevTab() {
 
     dev_showScoreboard = UI::Checkbox("Show scoreboard", dev_showScoreboard);
     if (dev_showScoreboard) g_LastLoadingScreen = Time::Now - 2900;
+
+    UI::AlignTextToFramePadding();
+    UI::Text("Curr State: " + tostring(State::currState));
+
+    if (UI::Button("Set State Running")) {
+        State::currState = GameState::Running;
+    }
+
+    if (UI::Button("Set State Not Running")) {
+        State::currState = GameState::NotRunning;
+    }
 }
 #endif
