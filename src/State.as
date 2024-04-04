@@ -265,25 +265,25 @@ namespace State {
 
     void UpdateSortedPlayerMedals() {
         if (SortedPlayerMedals.Length == 0) return;
-        SortedPlayerMedals.SortNonConst(function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
-            if (a.NbWRs != b.NbWRs) return a.NbWRs > b.NbWRs;
-            if (a.NbATs != b.NbATs) return a.NbATs > b.NbATs;
-            if (a.NbGolds != b.NbGolds) return a.NbGolds > b.NbGolds;
-            if (a.NbSilvers != b.NbSilvers) return a.NbSilvers > b.NbSilvers;
-            if (a.NbBronzes != b.NbBronzes) return a.NbBronzes > b.NbBronzes;
-            if (a.NbNoMedals != b.NbNoMedals) return a.NbNoMedals > b.NbNoMedals;
-            if (a.mapCount != b.mapCount) return a.mapCount > b.mapCount;
-            return true;
+        pmcQuicksort(SortedPlayerMedals, function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
+            if (a.NbWRs != b.NbWRs) return a.NbWRs > b.NbWRs ? -1 : 1;
+            if (a.NbATs != b.NbATs) return a.NbATs > b.NbATs ? -1 : 1;
+            if (a.NbGolds != b.NbGolds) return a.NbGolds > b.NbGolds ? -1 : 1;
+            if (a.NbSilvers != b.NbSilvers) return a.NbSilvers > b.NbSilvers ? -1 : 1;
+            if (a.NbBronzes != b.NbBronzes) return a.NbBronzes > b.NbBronzes ? -1 : 1;
+            if (a.NbNoMedals != b.NbNoMedals) return a.NbNoMedals > b.NbNoMedals ? -1 : 1;
+            if (a.mapCount != b.mapCount) return a.mapCount > b.mapCount ? -1 : 1;
+            return 0;
         });
-        GOATPlayerMedals.SortNonConst(function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
-            if (a.NbLifeWRs != b.NbLifeWRs) return a.NbLifeWRs > b.NbLifeWRs;
-            if (a.NbLifeATs != b.NbLifeATs) return a.NbLifeATs > b.NbLifeATs;
-            if (a.NbLifeGolds != b.NbLifeGolds) return a.NbLifeGolds > b.NbLifeGolds;
-            if (a.NbLifeSilvers != b.NbLifeSilvers) return a.NbLifeSilvers > b.NbLifeSilvers;
-            if (a.NbLifeBronzes != b.NbLifeBronzes) return a.NbLifeBronzes > b.NbLifeBronzes;
-            if (a.NbLifeNoMedals != b.NbLifeNoMedals) return a.NbLifeNoMedals > b.NbLifeNoMedals;
-            if (a.mapCount != b.mapCount) return a.mapCount > b.mapCount;
-            return true;
+        pmcQuicksort(GOATPlayerMedals, function(PlayerMedalCount@ &in a, PlayerMedalCount@ &in b) {
+            if (a.NbLifeWRs != b.NbLifeWRs) return a.NbLifeWRs > b.NbLifeWRs ? -1 : 1;
+            if (a.NbLifeATs != b.NbLifeATs) return a.NbLifeATs > b.NbLifeATs ? -1 : 1;
+            if (a.NbLifeGolds != b.NbLifeGolds) return a.NbLifeGolds > b.NbLifeGolds ? -1 : 1;
+            if (a.NbLifeSilvers != b.NbLifeSilvers) return a.NbLifeSilvers > b.NbLifeSilvers ? -1 : 1;
+            if (a.NbLifeBronzes != b.NbLifeBronzes) return a.NbLifeBronzes > b.NbLifeBronzes ? -1 : 1;
+            if (a.NbLifeNoMedals != b.NbLifeNoMedals) return a.NbLifeNoMedals > b.NbLifeNoMedals ? -1 : 1;
+            if (a.mapCount != b.mapCount) return a.mapCount > b.mapCount ? -1 : 1;
+            return 0;
         });
     }
 
@@ -692,6 +692,36 @@ namespace State {
     // }
 
 
+
+
+funcdef int PmcLessF(PlayerMedalCount@ &in m1, PlayerMedalCount@ &in m2);
+void pmcQuicksort(PlayerMedalCount@[]@ arr, PmcLessF@ f, int left = 0, int right = -1) {
+    if (right < 0) right = arr.Length - 1;
+    if (arr.Length == 0) return;
+    int i = left;
+    int j = right;
+    PlayerMedalCount@ pivot = arr[(left + right) / 2];
+
+    while (i <= j) {
+        while (f(arr[i], pivot) < 0) i++;
+        while (f(arr[j], pivot) > 0) j--;
+        if (i <= j) {
+            PlayerMedalCount@ temp = arr[i];
+            @arr[i] = arr[j];
+            @arr[j] = temp;
+            i++;
+            j--;
+        }
+    }
+
+    if (left < j) pmcQuicksort(arr, f, left, j);
+    if (i < right) pmcQuicksort(arr, f, i, right);
+}
+
+
+
+
+
 auto pmcPad = vec2(15., 5.);
 
 class PlayerMedalCount {
@@ -946,7 +976,8 @@ void LoadAllPlayerMedalCounts() {
         if (i % 100 == 0) {
             Notify("Loaded " + (i + 1) + " / " + files.Length);
         }
-        yield();
+        if (i % 10 == 0)
+            yield();
     }
     yield();
     State::UpdateSortedPlayerMedals();
