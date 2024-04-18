@@ -23,7 +23,7 @@ int S_DefaultTimeLimit = 300;
 [Setting category="General" name="Lobby Map UID"]
 string S_LobbyMapUID = "9ZmfOvlHBXddVLngtdfnRGaIunc";
 
-[Setting category="General" name="Loading Screen Image URL"]
+[Setting category="General" name="Loading Screen Image URL(s)" description="Separate multiple URLs by commas to choose a random one each time."]
 string S_LoadingScreenImageUrl = "https://i.imgur.com/xEqv5fr.png";
 
 [Setting category="General" name="Lobby Loading Screen Image URL"]

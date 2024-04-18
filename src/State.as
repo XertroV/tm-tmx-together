@@ -479,7 +479,7 @@ namespace State {
             .SetTimeLimit(timelimit)
             .SetChatTime(0)
             .SetMaps({loadNextUid})
-            .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
+            .SetLoadingScreenUrl(ChooseNextLoadingScreenUrl())
             .SetModeSetting("S_DelayBeforeNextMap", "1")
             .SetMode(BRM::GameMode::TimeAttack);
 
@@ -659,7 +659,7 @@ namespace State {
     //     status = "Loading Map " + loadNextId + " / " + loadNextUid;
     //     auto builder = BRM::CreateRoomBuilder(clubId, roomId)
     //         .SetTimeLimit(1).SetChatTime(0).SetMaps({loadNextUid})
-    //         .SetLoadingScreenUrl(S_LoadingScreenImageUrl)
+    //         .SetLoadingScreenUrl(ChooseNextLoadingScreenUrl())
     //         .SetMode(BRM::GameMode::Teams)
     //         .SetModeSetting("S_PointsRepartition", "12,8,5,3,2,1,1")
     //         .SetModeSetting("S_FinishTimeout", "10")
@@ -986,4 +986,20 @@ void LoadAllPlayerMedalCounts() {
 void LoadGOATPlayerMedalCounts() {
     // todo if we need to
     LoadAllPlayerMedalCounts();
+}
+
+string ChooseNextLoadingScreenUrl() {
+    if (!S_LoadingScreenImageUrl.Contains(',')) {
+        return S_LoadingScreenImageUrl;
+    }
+    auto parts = S_LoadingScreenImageUrl.Split(",");
+    for (uint i = 0; i < parts.Length; i++) {
+        parts[i] = parts[i].Trim();
+        if (parts[i].Length == 0) {
+            parts.RemoveAt(i);
+            i--;
+        }
+    }
+    if (parts.Length == 0) return S_LoadingScreenImageUrl;
+    return parts[Math::Rand(0, parts.Length)];
 }
