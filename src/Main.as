@@ -9,6 +9,8 @@ bool HaveDeps = false;
 StatusMsgUI@ statusMsgs;
 int nvgFont = 0;
 
+bool LoadingMedalCounts = true;
+
 void Main() {
     UserHasPermissions = Permissions::CreateClub();
     if (!HaveDeps) {
@@ -32,12 +34,15 @@ void Main() {
     }
 
     sleep(0); /*yield()*/
-    if (Time::Now < 60000)
+
+    if (Time::Now < 20000)
         sleep(1000);
     sleep(0);
 
     Notify("Loading Player Medal Counts");
     LoadAllPlayerMedalCounts();
+
+    LoadingMedalCounts = false;
     Notify("Done Loading Player Medal Counts. Checking for Session Data to restore.");
     sleep(0); /*yield()*/
     State::TryRestoringSessionData();

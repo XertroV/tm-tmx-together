@@ -262,6 +262,19 @@ namespace State {
         return pmc;
     }
 
+    void DeletePMC(PlayerMedalCount@ pmc) {
+        PlayerMedalCounts.Delete(pmc.login);
+        auto ix = SortedPlayerMedals.FindByRef(pmc);
+        if (ix >= 0) SortedPlayerMedals.RemoveAt(ix);
+        ix = GOATPlayerMedals.FindByRef(pmc);
+        if (ix >= 0) GOATPlayerMedals.RemoveAt(ix);
+        ix = NewestPlayerMedals.FindByRef(pmc);
+        if (ix >= 0) NewestPlayerMedals.RemoveAt(ix);
+        if (IO::FileExists(pmc.filename)) {
+            IO::Move(pmc.filename, pmc.filename + ".deleted");
+        }
+    }
+
     PlayerMedalCount@[] SortedPlayerMedals;
     PlayerMedalCount@[] NewestPlayerMedals;
     PlayerMedalCount@[] GOATPlayerMedals;
@@ -861,6 +874,10 @@ class PlayerMedalCount {
         return lifetimeMedalCounts[5];
     }
 
+    uint get_NbLifeMedalsTotal() {
+        return lifetimeMedalCounts[0] + lifetimeMedalCounts[1] + lifetimeMedalCounts[2] + lifetimeMedalCounts[3] + lifetimeMedalCounts[4];
+    }
+
     void AddMedal(Medal m) {
         mapCount++;
         mapCountSession++;
@@ -975,6 +992,7 @@ vec4[] medalColors = {
 
 
 void LoadAllPlayerMedalCounts() {
+    LoadingMedalCounts = true;
     auto usersFolder = IO::FromStorageFolder("users/");
     auto files = IO::IndexFolder(usersFolder, false);
     Notify("Loading " + files.Length + " player medal counts.");
@@ -989,6 +1007,7 @@ void LoadAllPlayerMedalCounts() {
     }
     sleep(0); /*yield()*/
     State::UpdateSortedPlayerMedals();
+    LoadingMedalCounts = false;
 }
 
 void LoadGOATPlayerMedalCounts() {

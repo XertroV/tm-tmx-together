@@ -65,7 +65,32 @@ bool S_ShowVotesOnScreen = true;
 bool S_SendChatUpdateMsgs = true;
 
 
+[SettingsTab name="Utilities" order="10"]
+void Render_S_Utils() {
+    UI::BeginDisabled(LoadingMedalCounts);
+    if (UI::Button("Purge Players with 0 medals")) {
+        startnew(PurgePlayersWith0Medals);
+    }
+    UI::EndDisabled();
+}
 
+
+void PurgePlayersWith0Medals() {
+    LoadingMedalCounts = true;
+    PlayerMedalCount@ player;
+    uint nbDelted = 0;
+    for (int i = State::SortedPlayerMedals.Length - 1; i >= 0; i--) {
+        @player = State::SortedPlayerMedals[i];
+        if (player.NbLifeMedalsTotal == 0) {
+            warn("removing: " + player.login + " / " + player.name);
+            State::DeletePMC(player);
+            sleep(0);
+            nbDelted++;
+        }
+    }
+    NotifyWarning("Deleted " + nbDelted + " players with 0 medals");
+    LoadingMedalCounts = false;
+}
 
 
 #if DEV
