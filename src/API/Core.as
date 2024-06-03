@@ -32,5 +32,5 @@ void ReturnToMenu(bool yieldTillReady = false) {
         app.Network.PlaygroundInterfaceScriptHandler.CloseInGameMenu(CGameScriptHandlerPlaygroundInterface::EInGameMenuResult::Quit);
     }
     app.BackToMainMenu();
-    while (yieldTillReady && !app.ManiaTitleControlScriptAPI.IsReady) yield();
+    while (yieldTillReady && !app.ManiaTitleControlScriptAPI.IsReady) sleep(0); /*yield()*/
 }

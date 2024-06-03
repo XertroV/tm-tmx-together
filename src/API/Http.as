@@ -1,22 +1,22 @@
 Json::Value@ FetchLiveEndpoint(const string &in route) {
     NadeoServices::AddAudience("NadeoLiveServices");
-    while (!NadeoServices::IsAuthenticated("NadeoLiveServices")) yield();
+    while (!NadeoServices::IsAuthenticated("NadeoLiveServices")) sleep(0); /*yield()*/
 
     log_trace("[FetchLiveEndpoint] Requesting: " + route);
     auto req = NadeoServices::Get("NadeoLiveServices", route);
     req.Start();
-    while(!req.Finished()) { yield(); }
+    while(!req.Finished()) { sleep(0); /*yield()*/ }
     return Json::Parse(req.String());
 }
 
 Json::Value@ FetchClubEndpoint(const string &in route) {
     NadeoServices::AddAudience("NadeoLiveServices");
-    while (!NadeoServices::IsAuthenticated("NadeoLiveServices")) yield();
+    while (!NadeoServices::IsAuthenticated("NadeoLiveServices")) sleep(0); /*yield()*/
 
     log_trace("[FetchClubEndpoint] Requesting: " + route);
     auto req = NadeoServices::Get("NadeoLiveServices", route);
     req.Start();
-    while(!req.Finished()) { yield(); }
+    while(!req.Finished()) { sleep(0); /*yield()*/ }
     return Json::Parse(req.String());
 }
 
@@ -46,7 +46,7 @@ Json::Value@ CallMapMonitorApiPath(const string &in path) {
     // req.Headers['Authorization'] = 'openplanet ' + token;
     req.Method = Net::HttpMethod::Get;
     req.Start();
-    while(!req.Finished()) { yield(); }
+    while(!req.Finished()) { sleep(0); /*yield()*/ }
     return Json::Parse(req.String());
 }
 

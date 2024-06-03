@@ -23,8 +23,9 @@ int S_DefaultTimeLimit = 300;
 [Setting category="General" name="Lobby Map UID"]
 string S_LobbyMapUID = "9ZmfOvlHBXddVLngtdfnRGaIunc";
 
+// todo: add new loading screens from https://imgur.com/a/uGgA05z
 [Setting category="General" name="Loading Screen Image URL"]
-string S_LoadingScreenImageUrl = "https://i.imgur.com/xEqv5fr.png";
+string S_LoadingScreenImageUrl = "https://i.imgur.com/R9zM2Uf.jpeg, https://i.imgur.com/GbFCdgb.jpeg, https://i.imgur.com/AoCTpkF.jpeg";
 
 [Setting category="General" name="Lobby Loading Screen Image URL"]
 string S_LobbyLoadingScreenImageUrl = "https://i.imgur.com/xEqv5fr.png";

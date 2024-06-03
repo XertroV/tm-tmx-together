@@ -126,17 +126,17 @@ void LoadCustomFinishMessages() {
     if (IO::FileExists(FINISH_MSGS_BACKUP_PATH)) {
         IO::Move(FINISH_MSGS_BACKUP_PATH, FINISH_MSGS_BACKUP2_PATH);
     }
-    yield();
+    sleep(0); /*yield()*/
     if (!IO::FileExists(FINISH_MSGS_PATH)) {
         Json::ToFile(FINISH_MSGS_PATH, Json::Array());
     }
-    yield();
+    sleep(0); /*yield()*/
     @FinishMsgs = Json::FromFile(FINISH_MSGS_PATH);
     if (FinishMsgs.GetType() != Json::Type::Array) {
         NotifyWarning("Loaded finish messages but was not an array");
         @FinishMsgs = Json::Array();
     }
-    yield();
+    sleep(0); /*yield()*/
     Json::ToFile(FINISH_MSGS_BACKUP_PATH, FinishMsgs);
 }
 

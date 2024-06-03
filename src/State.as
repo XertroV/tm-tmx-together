@@ -75,7 +75,7 @@ namespace State {
                 CheckForNewPlayers();
                 lastNbPlayers = newNbPlayers;
             }
-            yield();
+            sleep(0); /*yield()*/
         }
         newPlayerWatchRunning = false;
     }
@@ -108,8 +108,9 @@ namespace State {
                 OnPodiumSequence();
                 // standard podium is 7s
                 sleep(15000);
+                sleep(0);
             }
-            yield();
+            sleep(0); /*yield()*/
         }
         podiumWatchRunning = false;
     }
@@ -121,6 +122,7 @@ namespace State {
         string wrMapUid;
         while (currState != GameState::NotRunning) {
             sleep(500);
+            sleep(0);
             if (!S_AutoMoveOnForWR) continue;
             auto app = GetApp();
             if (app.RootMap is null) continue;
@@ -137,18 +139,19 @@ namespace State {
                 Notify("detected player WR: " + bestPlayer.Name + ", " + bestPlayer.BestTime + ", wr: " + wrTime);
                 wrMapUid = lastMap;
                 Chat::SendMessage("$s$o$f5b"+Icons::Star+" WR by " + bestPlayer.Name + "! BWOAH");
-                yield();
+                sleep(0); /*yield()*/
                 auto timeLeft = GetSecondsLeft();
                 Notify("WR timeleft check: if " + timeLeft + " > " + S_AutoMoveOnInSeconds + " then move on.");
                 if (timeLeft > int(S_AutoMoveOnInSeconds)) {
                     if (currState == GameState::Loading) {
                         Notify("Waiting for loading to finish before auto moving on.");
-                        while (currState == GameState::Loading) yield();
+                        while (currState == GameState::Loading) sleep(0); /*yield()*/
                     }
                     startnew(State::AutoMoveOn);
                 }
-                while (wrMapUid == lastMap) yield();
+                while (wrMapUid == lastMap) sleep(0); /*yield()*/
                 sleep(15000);
+                sleep(0);
             }
         }
         wrWatchRunning = false;
@@ -311,7 +314,7 @@ namespace State {
     //     while ((@cp = GetApp().CurrentPlayground) !is null) {
     //         if (cp.GameTerminals.Length == 0) return;
     //         if (cp.GameTerminals[0].UISequence_Current)
-    //         yield();
+    //         sleep(0); /*yield()*/
     //     }
     // }
 
@@ -369,7 +372,7 @@ namespace State {
             Chat::SendWarningMessage("Loading Next Map...");
             UpdateNextMap();
             if (!CheckUploadedToNadeo()) {
-                yield();
+                sleep(0); /*yield()*/
                 Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
                 S_LastTmxID = loadNextId;
                 LoadNextTmxMap();
@@ -390,6 +393,7 @@ namespace State {
             if (!CheckUploadedToNadeo()) {
                 Chat::SendWarningMessage("Map not uploaded to Nadeo! Cannot load " + loadNextId + ". Trying next in 5s.");
                 sleep(5000);
+                sleep(0);
                 S_LastTmxID = loadNextId;
                 SetNextTmxMap();
                 return;
@@ -405,6 +409,7 @@ namespace State {
             if (timeLeft > 9000) {
                 auto pre = Time::Now;
                 sleep(timeLeft - 9000);
+                sleep(0);
                 timeLeft = timeLeft - (Time::Now - pre);
             }
             timeLeft = Math::Max(6000, timeLeft) - 4500;
@@ -454,6 +459,7 @@ namespace State {
             S_LastTmxID = loadNextId;
             currState = GameState::Running;
             sleep(5000);
+            sleep(0);
             AutoMoveOn();
             return;
         }
@@ -489,6 +495,7 @@ namespace State {
         log_trace('Room request returned: ' + Json::Write(resp));
         if (waitSeconds > 1) currState = GameState::Running;
         sleep(1000 * waitTime);
+        sleep(0);
         // exit if another set next room has been triggered in the mean time
         if (lastSetNextMap != myLastSetNextMap) return;
         currState = GameState::Loading;
@@ -502,7 +509,7 @@ namespace State {
         status = "Done";
         S_LastTmxID = loadNextId;
         Meta::SaveSettings();
-        yield();
+        sleep(0); /*yield()*/
         currState = GameState::Running;
     }
 
@@ -547,6 +554,7 @@ namespace State {
         status += "\nSaved Room maps + time limit... Waiting 5s";
         log_trace('Room request returned: ' + Json::Write(resp));
         sleep(Math::Max(5000, S_TimeLimitOnEndMap * 1000));
+        sleep(0);
         int limit = -1;
         builder.SetTimeLimit(limit);
         status = "Adjusting room time limit to " + limit;
@@ -561,7 +569,7 @@ namespace State {
     void AwaitMapUidLoad(const string &in uid) {
         auto app = GetApp();
         while (true) {
-            yield();
+            sleep(0); /*yield()*/
             // we disconnected
             if (app.Network.ClientManiaAppPlayground is null) return;
             // wait for a map
@@ -977,9 +985,9 @@ void LoadAllPlayerMedalCounts() {
             Notify("Loaded " + (i + 1) + " / " + files.Length);
         }
         if (i % 10 == 0)
-            yield();
+            sleep(0); /*yield()*/
     }
-    yield();
+    sleep(0); /*yield()*/
     State::UpdateSortedPlayerMedals();
 }
 
