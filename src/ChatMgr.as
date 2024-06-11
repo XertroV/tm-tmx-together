@@ -17,7 +17,7 @@ namespace Chat {
     NGameScriptChat_SHistory@ hist;
     void ChatCoro() {
         while (true) {
-            sleep(0); /*yield()*/
+            yield();
             if (!State::IsNotRunning) {
                 CheckChat();
             }

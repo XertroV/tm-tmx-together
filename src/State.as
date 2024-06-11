@@ -75,7 +75,7 @@ namespace State {
                 CheckForNewPlayers();
                 lastNbPlayers = newNbPlayers;
             }
-            sleep(0); /*yield()*/
+            yield();
         }
         newPlayerWatchRunning = false;
     }
@@ -110,7 +110,7 @@ namespace State {
                 sleep(15000);
                 sleep(0);
             }
-            sleep(0); /*yield()*/
+            yield();
         }
         podiumWatchRunning = false;
     }
@@ -121,8 +121,8 @@ namespace State {
         wrWatchRunning = true;
         string wrMapUid;
         while (currState != GameState::NotRunning) {
-            sleep(500);
-            sleep(0);
+            // sleep(500);
+            yield();
             if (!S_AutoMoveOnForWR) continue;
             auto app = GetApp();
             if (app.RootMap is null) continue;
@@ -134,22 +134,23 @@ namespace State {
             auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(players[0]);
             bool playerGotWR = IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId)
                 && bestPlayer.BestTime < (rd.Rules_GameTime - rd.Rules_StartTime)
+                && bestPlayer.IsFinished
                 && rd.Rules_StartTime < 200000000;
             if (playerGotWR) {
                 Notify("detected player WR: " + bestPlayer.Name + ", " + bestPlayer.BestTime + ", wr: " + wrTime);
                 wrMapUid = lastMap;
                 Chat::SendMessage("$s$o$f5b"+Icons::Star+" WR by " + bestPlayer.Name + "! BWOAH");
-                sleep(0); /*yield()*/
+                yield();
                 auto timeLeft = GetSecondsLeft();
                 Notify("WR timeleft check: if " + timeLeft + " > " + S_AutoMoveOnInSeconds + " then move on.");
                 if (timeLeft > int(S_AutoMoveOnInSeconds)) {
                     if (currState == GameState::Loading) {
                         Notify("Waiting for loading to finish before auto moving on.");
-                        while (currState == GameState::Loading) sleep(0); /*yield()*/
+                        while (currState == GameState::Loading) yield();
                     }
                     startnew(State::AutoMoveOn);
                 }
-                while (wrMapUid == lastMap) sleep(0); /*yield()*/
+                while (wrMapUid == lastMap) yield();
                 sleep(15000);
                 sleep(0);
             }
@@ -327,7 +328,7 @@ namespace State {
     //     while ((@cp = GetApp().CurrentPlayground) !is null) {
     //         if (cp.GameTerminals.Length == 0) return;
     //         if (cp.GameTerminals[0].UISequence_Current)
-    //         sleep(0); /*yield()*/
+    //         yield();
     //     }
     // }
 
@@ -385,7 +386,7 @@ namespace State {
             Chat::SendWarningMessage("Loading Next Map...");
             UpdateNextMap();
             if (!CheckUploadedToNadeo()) {
-                sleep(0); /*yield()*/
+                yield();
                 Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
                 S_LastTmxID = loadNextId;
                 LoadNextTmxMap();
@@ -522,7 +523,7 @@ namespace State {
         status = "Done";
         S_LastTmxID = loadNextId;
         Meta::SaveSettings();
-        sleep(0); /*yield()*/
+        yield();
         currState = GameState::Running;
     }
 
@@ -582,7 +583,7 @@ namespace State {
     void AwaitMapUidLoad(const string &in uid) {
         auto app = GetApp();
         while (true) {
-            sleep(0); /*yield()*/
+            yield();
             // we disconnected
             if (app.Network.ClientManiaAppPlayground is null) return;
             // wait for a map
@@ -1003,9 +1004,9 @@ void LoadAllPlayerMedalCounts() {
             Notify("Loaded " + (i + 1) + " / " + files.Length);
         }
         if (i % 10 == 0)
-            sleep(0); /*yield()*/
+            yield();
     }
-    sleep(0); /*yield()*/
+    yield();
     State::UpdateSortedPlayerMedals();
     LoadingMedalCounts = false;
 }

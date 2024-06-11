@@ -23,13 +23,13 @@ ClearTask@[] tasksToClear;
 
 // Wait for the task to finish processing, then add it to the list of tasks to be cleared later. Execution returns immediately, so you should consume all data in the task before yielding.
 void WaitAndClearTaskLater(CWebServicesTaskResult@ task, CMwNod@ owner) {
-    while (task.IsProcessing) sleep(0); /*yield()*/
+    while (task.IsProcessing) yield();
     tasksToClear.InsertLast(ClearTask(task, owner));
 }
 
 void ClearTaskCoro() {
     while (true) {
-        sleep(0); /*yield()*/
+        yield();
         if (tasksToClear.Length == 0) continue;
         for (uint i = 0; i < tasksToClear.Length; i++) {
             tasksToClear[i].Release();

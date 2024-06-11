@@ -33,7 +33,7 @@ void Main() {
         IO::CreateFolder(IO::FromStorageFolder("users"));
     }
 
-    sleep(0); /*yield()*/
+    yield();
 
     if (Time::Now < 20000)
         sleep(1000);
@@ -44,7 +44,7 @@ void Main() {
 
     LoadingMedalCounts = false;
     Notify("Done Loading Player Medal Counts. Checking for Session Data to restore.");
-    sleep(0); /*yield()*/
+    yield();
     State::TryRestoringSessionData();
     Notify("Done restoring session data. TMX Together is now initialized.");
     LoadCustomFinishMessages();
@@ -53,7 +53,7 @@ void Main() {
 string lastMap;
 void MainCoro() {
     while (true) {
-        sleep(0); /*yield()*/
+        yield();
         if (!ShowWindow) continue;
         auto map = GetApp().RootMap;
         if (map is null) {
@@ -219,7 +219,7 @@ uint lastPgStartTime = 0;
 void AwaitRulesStart() {
     auto app = GetApp();
     while (true) {
-        sleep(0); /*yield()*/
+        yield();
         auto cp = cast<CSmArenaClient>(app.CurrentPlayground);
         if (cp is null) continue;
         if (cp.GameTerminals.Length == 0) continue;
