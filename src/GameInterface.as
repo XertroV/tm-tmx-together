@@ -94,6 +94,14 @@ class GameInterface {
         if (UI::Button("Sort")) {
             startnew(State::UpdateSortedPlayerMedals);
         }
+        UI::SameLine();
+        UI::Dummy(vec2(32, 0));
+        UI::SameLine();
+        if (!g_ForceShowLeaderboard && UI::Button("View Scoreboard")) {
+            g_ForceShowLeaderboard = true;
+        } else if (g_ForceShowLeaderboard && UI::Button("Hide Scoreboard")) {
+            g_ForceShowLeaderboard = false;
+        }
         UI::Separator();
         if (UI::CollapsingHeader("Current Runs")) {
 #if DEPENDENCY_MLFEEDRACEDATA

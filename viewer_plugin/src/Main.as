@@ -3,7 +3,7 @@ int nvgFont = 0;
 void Main() {
 	nvgFont = nvg::LoadFont("DroidSans-Bold.ttf", true, true);
 #if DEV
-	g_ForceShowLeaderboard = true;
+	// g_ForceShowLeaderboard = true;
 #endif
 }
 

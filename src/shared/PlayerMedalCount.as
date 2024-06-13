@@ -28,6 +28,7 @@ class PlayerMedalCount : ScoreboardElement {
     uint lastSeen;
     string filename;
     string nameWithTabs;
+    bool ScoreboardTypeLifetime = false;
 
     PlayerMedalCount(const string &in name, const string &in login) {
         this.name = name;
@@ -219,7 +220,14 @@ class PlayerMedalCount : ScoreboardElement {
     }
 
     void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, uint[]@ mc = null, bool lifetimeMapCount = false) {
-        if (mc is null) @mc = medalCounts;
+        lifetimeMapCount = lifetimeMapCount || ScoreboardTypeLifetime;
+        if (mc is null) {
+            if (lifetimeMapCount) {
+                @mc = lifetimeMedalCounts;
+            } else {
+                @mc = medalCounts;
+            }
+        }
         string nameLabel = tostring(rank) + ". " + name;
         auto maxNameWidth = nameWidth - pmcPad.x;
 
