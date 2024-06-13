@@ -1,0 +1,23 @@
+{
+    "name": "name",
+    "headline": "headline",
+    "body": "body\nbody2\nbody3"
+}
+//curl -X POST -H 'Authorization: nadeo_v1 t=x.x.x' -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"name":"name","headline":"headline","body":"body\\nbody2\\nbody3"}' 'https://live-services.trackmania.nadeo.live/api/token/club/46587/news/create'
+{
+    "headline": "headline",
+    "body": "body\\nbody2\\nbody3",
+    "mediaUrl": "",
+    "mediaUrlJpgLarge": "",
+    "mediaUrlJpgMedium": "",
+    "mediaUrlJpgSmall": "",
+    "mediaUrlDds": "",
+    "mediaTheme": "",
+    "creationTimestamp": 1718271892,
+    "creatorAccountId": "0a2d1bc0-4aaa-4374-b2db-3d561bdab1c9",
+    "latestEditorAccountId": "0a2d1bc0-4aaa-4374-b2db-3d561bdab1c9",
+    "id": 602032,
+    "clubId": 46587,
+    "clubName": "$09eX$88bR$a78T$c65R$c51V$c51 $d74($d97X$cbae$bder$bdet$9cer$8ceo$5beV$1ae)",
+    "name": "name"
+}

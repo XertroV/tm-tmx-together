@@ -1,3 +1,11 @@
+
+[Setting category="General" name="Log Level"]
+#if SIG_DEVELOPER
+LogLevel S_LogLevel = LogLevel::Trace;
+#else
+LogLevel S_LogLevel = LogLevel::Info;
+#endif
+
 enum LogLevel {
     Error,
     Warning,

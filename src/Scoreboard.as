@@ -21,22 +21,16 @@ void DrawPMCHeadings(vec2 &in pos, float nameWidth, float medalSpacing, float fo
     nvg::ClosePath();
 }
 
-uint g_LastLoadingScreen = 0;
-
 void DrawPlayerMedalCounts() {
     if (State::IsNotRunning) return;
     auto app = GetApp();
     bool isLoading = app.LoadProgress.State != NGameLoadProgress::EState::Disabled
         || app.Switcher.ModuleStack.Length == 0;
     if (!isLoading) {
-        if (Time::Now > g_LastLoadingScreen + 3000) return;
-    } else {
+        if (Time::Now > g_LastLoadingScreen + uint(S_SBTimeoutSec * 1000) && !g_ForceShowLeaderboard) return;
+    } else if (!g_ForceShowLeaderboard) {
         g_LastLoadingScreen = Time::Now;
     }
-    // draw only when we're over the loading screen.
-    // auto keys = State::PlayerMedalCounts.GetKeys();
-
-    auto @pmcs = State::SortedPlayerMedals;
     nvg::FontFace(nvgFont);
 
     DrawAltPlayerMedalCounts();
@@ -173,23 +167,4 @@ void DrawAltPlayerMedalCounts() {
         pmc.DrawCompactLifeTime(ix + 1, nextPos, nameWidth, medalSpacing, fontSize);
         nextPos.y += linePxHeight;
     }
-}
-
-// this is +1 because we draw nb. played maps too
-float f_nbMedalsToDraw = 4.;
-// set to mc.Length to draw all medals
-uint nbMedalsToDraw = 3;
-
-void DrawAltHeading(const string &in title, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0) {
-    nvg::BeginPath();
-    nvg::FontSize(fontSize);
-    nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
-
-    nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
-    vec2 bounds = vec2(nameWidth + medalSpacing * f_nbMedalsToDraw, pmcPad.y * 2. + fontSize);
-    nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
-    nvg::Fill();
-    nvg::FillColor(vec4(.8, .8, .8, 1) * vec4(1, 1, 1, alpha));
-    nvg::Text(pos + pmcPad + vec2(0, fontSize * .15), title);
-    nvg::ClosePath();
 }

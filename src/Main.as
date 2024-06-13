@@ -75,24 +75,6 @@ void OnMapChange() {
         startnew(State::TryGettingWR);
 }
 
-void Notify(const string &in msg) {
-    UI::ShowNotification(Meta::ExecutingPlugin().Name, msg);
-    log_trace("Notified: " + msg);
-}
-
-void NotifyError(const string &in msg) {
-    warn(msg);
-    UI::ShowNotification(Meta::ExecutingPlugin().Name + ": Error", msg, vec4(.9, .3, .1, .3), 15000);
-}
-
-void NotifyWarning(const string &in msg) {
-    warn(msg);
-    UI::ShowNotification(Meta::ExecutingPlugin().Name + ": Warning", msg, vec4(.9, .6, .2, .3), 15000);
-}
-
-const string PluginIcon = Icons::ListOl;
-const string MenuTitle = "\\$000" + PluginIcon + "\\$z " + Meta::ExecutingPlugin().Name;
-
 // show the window immediately upon installation
 [Setting hidden]
 bool ShowWindow = true;
@@ -188,15 +170,6 @@ void RenderGameScreen() {
 
 
 
-void AddSimpleTooltip(const string &in msg) {
-    if (UI::IsItemHovered()) {
-        UI::BeginTooltip();
-        UI::Text(msg);
-        UI::EndTooltip();
-    }
-}
-
-
 
 void OnDestroyed() { _Unload(); }
 // void OnDisabled() { _Unload(); }
@@ -290,10 +263,6 @@ string GetMapUid() {
 string GetMapName() {
     auto map = GetApp().RootMap;
     return map is null ? "" : string(map.MapName);
-}
-
-enum Medal {
-    WR = 0, Author = 1, Gold, Silver, Bronze, NoMedal
 }
 
 string GetMedalStringForTime(uint time) {

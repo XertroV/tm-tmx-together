@@ -1,0 +1,11 @@
+[meta]
+name     = "Server-Game Scoreboard"
+author   = "XertroV"
+category = "TMX"
+version  = "0.1.14"
+# siteid   = 442
+
+[script]
+#__DEFINES__
+dependencies = ["NadeoServices", "BetterRoomManager"]
+optional_dependencies = ["tmx-together"]

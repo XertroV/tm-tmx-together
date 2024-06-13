@@ -6,7 +6,7 @@ Json::Value@ FetchLiveEndpoint(const string &in route) {
     auto req = NadeoServices::Get("NadeoLiveServices", route);
     req.Start();
     while(!req.Finished()) { yield(); }
-    return Json::Parse(req.String());
+    return req.Json();
 }
 
 Json::Value@ FetchClubEndpoint(const string &in route) {
@@ -17,7 +17,20 @@ Json::Value@ FetchClubEndpoint(const string &in route) {
     auto req = NadeoServices::Get("NadeoLiveServices", route);
     req.Start();
     while(!req.Finished()) { yield(); }
-    return Json::Parse(req.String());
+    return req.Json();
+}
+
+Net::HttpRequest@ PostLiveEndpoint(const string &in route, Json::Value@ data) {
+    AssertGoodPath(route);
+    NadeoServices::AddAudience("NadeoLiveServices");
+    while (!NadeoServices::IsAuthenticated("NadeoLiveServices")) yield();
+
+    string url = NadeoServices::BaseURLLive() + route;
+    log_trace("[PostLiveEndpoint] Requesting: " + url);
+    auto req = NadeoServices::Post("NadeoLiveServices", url, Json::Write(data));
+    req.Start();
+    while(!req.Finished()) { yield(); }
+    return req;
 }
 
 Json::Value@ CallLiveApiPath(const string &in path) {

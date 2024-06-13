@@ -7,8 +7,9 @@ siteid   = 442
 
 [script]
 #__DEFINES__
-dependencies = ["NadeoServices", "MLHook", "MLFeedRaceData"]
+dependencies = ["NadeoServices", "MLHook", "MLFeedRaceData", "BetterRoomManager"]
 optional_dependencies = ["BetterChat",
-    "BetterRoomManager", "better-room-manager-dev",
     "mapinfo", "map-info-dev"
     ]
+module = "TmxTogether"
+exports = ["ExportCode.as"]

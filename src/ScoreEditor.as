@@ -12,13 +12,13 @@ namespace ScoreEditor {
         if (UI::Begin("Saved Scores Editor", windowVisible)) {
             if (UI::BeginTable("edit-medals", 2)) {
                 UI::TableSetupColumn("name", UI::TableColumnFlags::WidthFixed, 100);
-                UI::ListClipper clip(State::SortedPlayerMedals.Length);
+                UI::ListClipper clip(State::GOATPlayerMedals.Length);
                 while (clip.Step()) {
                     for (int i = clip.DisplayStart; i < clip.DisplayEnd; i++) {
                         UI::TableNextRow();
                         UI::TableNextColumn();
 
-                        auto item = State::SortedPlayerMedals[i];
+                        auto item = State::GOATPlayerMedals[i];
                         UI::PushID(item.login);
 
                         UI::AlignTextToFramePadding();
