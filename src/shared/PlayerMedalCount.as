@@ -204,7 +204,7 @@ class PlayerMedalCount : ScoreboardElement {
         nvg::FontSize(fontSize);
         nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
 
-        nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
+        nvg::FillColor(vec4(0, 0, 0, 0.65 * alpha));
         vec2 bounds = vec2(nameWidth + medalSpacing * (medalCounts.Length + 1), pmcPad.y * 2. + fontSize);
         nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
         nvg::Fill();
@@ -231,7 +231,7 @@ class PlayerMedalCount : ScoreboardElement {
 
         float xScale = textBounds.x > maxNameWidth ? Math::Max(0.1, maxNameWidth / textBounds.x) : 1;
 
-        nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
+        nvg::FillColor(vec4(0, 0, 0, 0.85 * alpha));
         vec2 bounds = vec2(nameWidth + medalSpacing * f_nbMedalsToDraw, pmcPad.y * 2. + fontSize);
         nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
         nvg::Fill();

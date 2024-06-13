@@ -47,7 +47,7 @@ void DrawAltHeading(const string &in title, vec2 &in pos, float nameWidth, float
     nvg::FontSize(fontSize);
     nvg::TextAlign(nvg::Align::Left | nvg::Align::Top);
 
-    nvg::FillColor(vec4(0, 0, 0, 0.7 * alpha));
+    nvg::FillColor(vec4(0, 0, 0, 0.85 * alpha));
     vec2 bounds = vec2(nameWidth + medalSpacing * f_nbMedalsToDraw, pmcPad.y * 2. + fontSize);
     nvg::Rect(pos - vec2(0, 2), bounds + pmcPad * 2.);
     nvg::Fill();
@@ -65,7 +65,9 @@ namespace Scoreboard {
         float w = Draw::GetWidth();
         float aspect = w / h;
         auto propYPad = 0.15;
-        if (aspect < 1.79) {
+        if (aspect < 1.5) {
+            nbCols = 2;
+        } else if (aspect < 1.99) {
             // assume 16x9
             nbCols = 3;
         } else {
@@ -75,13 +77,13 @@ namespace Scoreboard {
         float playerPropHeight = (1.0 - propYPad * 2.) / float(nbRows);
         float linePxHeight = playerPropHeight * h;
         float fontSize = (linePxHeight - pmcPad.y * 2.) / 1.3;
-        float fullWidth = Math::Max(h * 1.5, w * 0.8);
+        float fullWidth = Math::Max(h * 1.2, w * 0.8);
     #if DEV
         // fullWidth /= 2.0;
     #endif
         float colWidth = fullWidth / float(nbCols) - pmcPad.x * 1.5;
 
-        float xStart = (w - fullWidth) / 2.;
+        float xStart = (w - fullWidth - pmcPad.x * 1.5) / 2.;
         float fullHeight = h * (playerPropHeight * float(nbRows));
         float yStart = (h - fullHeight) / 2.;
         vec2 nextPos = vec2(xStart, yStart);
