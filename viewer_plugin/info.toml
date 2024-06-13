@@ -2,8 +2,8 @@
 name     = "Server-Game Scoreboard"
 author   = "XertroV"
 category = "TMX"
-version  = "0.1.14"
-# siteid   = 442
+version  = "1.0.0"
+siteid   = 564
 
 [script]
 #__DEFINES__
