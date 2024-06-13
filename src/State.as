@@ -49,6 +49,7 @@ namespace State {
     uint lastTmxId;
     int newsActivityId = -1;
     string ServerName;
+    string NewsName;
 
     string status;
 
@@ -65,13 +66,18 @@ namespace State {
         lastTmxId = S_LastTmxID;
         currState = GameState::Initializing;
         newsActivityId = -1;
-        auto si = GetServerInfo();
-        if (si !is null) {
-            ServerName = si.ServerName;
-        }
+        SetServerName();
         startnew(GetOrCreateClubNewsActivity);
         startnew(LoadNextTmxMap);
         StartCoros();
+    }
+
+    void SetServerName() {
+        auto si = GetServerInfo();
+        if (si !is null) {
+            ServerName = si.ServerName;
+            NewsName = ("LB:" + ServerName).SubStr(0, 20);
+        }
     }
 
     void ResumeGame() {
@@ -81,10 +87,7 @@ namespace State {
         loadNextId = S_LastTmxID;
         currState = GameState::Running;
         newsActivityId = -1;
-        auto si = GetServerInfo();
-        if (si !is null) {
-            ServerName = si.ServerName;
-        }
+        SetServerName();
         startnew(GetOrCreateClubNewsActivity);
         auto cp = cast<CSmArenaClient>(GetApp().CurrentPlayground);
         if (cp !is null) startnew(AwaitRulesStart);
@@ -115,15 +118,15 @@ namespace State {
             @activity = activities[i];
             if (string(activity["activityType"]) != "news") continue;
             string name = string(activity["name"]);
-            if (name != ServerName) continue;
+            if (name != NewsName) continue;
             // found it
             newsActivityId = int(activity["id"]);
-            log_trace("Found news activity for server: " + ServerName + ", id: " + newsActivityId);
+            log_trace("Found news activity for server: " + NewsName + ", id: " + newsActivityId);
             return;
         }
         // if we're here, it doesn't exist in first 100 things in club
-        log_trace("Creating news activity for server: " + ServerName);
-        auto resp = Live::CreateNews(clubId, ServerName, "", "# Scoreboard\n# Uninitialized");
+        log_trace("Creating news activity for server: " + NewsName);
+        auto resp = Live::CreateNews(clubId, NewsName, "", "# Scoreboard\n# Uninitialized");
         log_trace("CreateNews response: " + Json::Write(resp));
         newsActivityId = int(resp["id"]);
         log_trace("Created news activity: " + newsActivityId);
@@ -274,7 +277,7 @@ namespace State {
             auto pmc = GOATPlayerMedals[i];
             body.InsertLast(pmc.ToScoreboardLineString(i + 1, true));
         }
-        Live::SetNewsDetails(clubId, newsActivityId, ServerName, "", string::Join(body, ""));
+        Live::SetNewsDetails(clubId, newsActivityId, NewsName, "", string::Join(body, ""));
     }
 
     bool IsPMCLoaded(const string &in login) {

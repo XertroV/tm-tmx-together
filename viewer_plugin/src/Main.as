@@ -94,7 +94,8 @@ void CheckIfServerIsTmxTogether() {
 		@activity = activities[i];
 		if (string(activity["activityType"]) != "news") continue;
 		string name = string(activity["name"]);
-		if (name != lastServerName) {
+		if (!name.StartsWith("LB:")) continue;
+		if (name.SubStr(3) != lastServerName.SubStr(0, 17)) {
 #if DEV
 			trace("TMXT scoreboard news name mismatch: " + name + " != " + lastServerName);
 #endif
