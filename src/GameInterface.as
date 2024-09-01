@@ -33,7 +33,11 @@ class GameInterface {
         if (UI::Button("Next")) {
             startnew(State::LoadNextTmxMap);
         }
-        UI::SetCursorPos(cp + vec2(80, 0));
+        UI::SameLine();
+        if (UI::Button(Icons::Tags + "##tag-settings")) {
+            g_TmxTagWindowOpen = true;
+        }
+        UI::SetCursorPos(cp + vec2(100, 0));
         if (UI::Button("Next in " + S_AutoMoveOnInSeconds + " s")) {
             startnew(State::AutoMoveOn);
         }

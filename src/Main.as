@@ -97,6 +97,7 @@ void Render() {
     if (!UI::IsOverlayShown() && !S_ShowIfOverlayHidden) return;
     if (!UI::IsGameUIVisible() && !S_ShowIfUIHidden) return;
 
+    RenderTmxTagsSelectionWindow();
     ScoreEditor::Render();
     DrawPlayerMedalCounts();
     statusMsgs.RenderUpdate(lastDt);

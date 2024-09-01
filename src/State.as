@@ -450,7 +450,26 @@ namespace State {
         auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID);
         lastLoadedId = loadNextId = resp['next'];
         loadNextUid = resp['next_uid'];
-        Chat::SendGoodMessage("Next Map ID: " + loadNextId);
+        Chat::SendGoodMessage("Next Map ID: " + loadNextId + GetMMNextRespTagsFmt(resp));
+    }
+
+    string GetMMNextRespTagsFmt(Json::Value@ resp) {
+        string tags = "";
+        try {
+            if (resp.HasKey("tag_names")) {
+                auto t = resp["tag_names"];
+                if (t.GetType() == Json::Type::Array) {
+                    tags = " (";
+                    for (uint i = 0; i < t.Length; i++) {
+                        tags += (i == 0 ? "" : ", ") + string(t[i]);
+                    }
+                    tags += ")";
+                }
+            }
+        } catch {
+            warn("Failed to format tags from MM response: " + getExceptionInfo());
+        }
+        return tags;
     }
 
     uint lastLoadedId = S_LastTmxID;

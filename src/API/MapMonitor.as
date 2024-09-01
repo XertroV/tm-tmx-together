@@ -20,7 +20,15 @@ namespace MapMonitor {
         return CallMapMonitorApiPath('/map/' + mapUid + '/nb_players/refresh');
     }
 
-    Json::Value@ GetNextMapByTMXTrackID(int TrackID) {
-        return CallMapMonitorApiPath('/tmx/' + TrackID + '/next');
+    Json::Value@ GetNextMapByTMXTrackID(int TrackID, uint[]@ tags = {}) {
+        string ts = tags.Length > 0 ? "?tags=" + tags[0] : "";
+        for (uint i = 1; i < tags.Length; i++) {
+            ts += "," + tags[i];
+        }
+        return CallMapMonitorApiPath('/tmx/' + TrackID + '/next' + ts);
+    }
+
+    Json::Value@ GetTmxTags() {
+        return CallMapMonitorApiPath('/api/tags/gettags');
     }
 }
