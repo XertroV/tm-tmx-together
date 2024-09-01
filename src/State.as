@@ -447,7 +447,7 @@ namespace State {
 
     void UpdateNextMap() {
         status = "Loading next TMX map...";
-        auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID);
+        auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID, S_TmxTagsSelectionCsv);
         lastLoadedId = loadNextId = resp['next'];
         loadNextUid = resp['next_uid'];
         Chat::SendGoodMessage("Next Map ID: " + loadNextId + GetMMNextRespTagsFmt(resp));

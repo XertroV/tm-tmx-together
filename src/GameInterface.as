@@ -22,6 +22,8 @@ class GameInterface {
         }
     }
 
+    float _tagsHoverTime = 0.0;
+
     void RenderRunning() {
         UI::AlignTextToFramePadding();
         UI::Text("Current Map: " + State::lastLoadedId);
@@ -37,6 +39,17 @@ class GameInterface {
         if (UI::Button(Icons::Tags + "##tag-settings")) {
             g_TmxTagWindowOpen = true;
         }
+        if (UI::IsItemHovered()) {
+            _tagsHoverTime += lastDt;
+            if (_tagsHoverTime > 125.) {
+                UI::BeginTooltip();
+                DrawCurrentSelectedTmxTags();
+                UI::EndTooltip();
+            }
+        } else {
+            _tagsHoverTime = 0;
+        }
+
         UI::SetCursorPos(cp + vec2(100, 0));
         if (UI::Button("Next in " + S_AutoMoveOnInSeconds + " s")) {
             startnew(State::AutoMoveOn);
