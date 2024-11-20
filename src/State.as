@@ -851,13 +851,16 @@ void LoadAllPlayerMedalCounts() {
     auto usersFolder = IO::FromStorageFolder("users/");
     auto files = IO::IndexFolder(usersFolder, false);
     Notify("Loading " + files.Length + " player medal counts.");
+    uint notify_every = Math::Max(files.Length / 5, 10);
+    uint loaded = 0;
     for (uint i = 0; i < files.Length; i++) {
         if (!files[i].EndsWith(".json")) continue;
         State::LoadPMC(files[i]);
-        if (i % 100 == 0) {
-            Notify("Loaded " + (i + 1) + " / " + files.Length);
+        loaded++;
+        if (loaded % notify_every == 0) {
+            Notify("Loaded " + (loaded) + " / " + files.Length);
         }
-        if (i % 10 == 0)
+        if (loaded % 30 == 0)
             yield();
     }
     yield();
