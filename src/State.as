@@ -556,6 +556,7 @@ namespace State {
         AutoMoveOn(-1);
     }
 
+    // if moveOnIn < 0, use default S_AutoMoveOnInSeconds or S_AutoMoveOnBasedOnAT
     void AutoMoveOn(int64 moveOnIn) {
         if (GetApp().CurrentPlayground is null || currState == GameState::Loading) return;
         currState = GameState::Loading;
