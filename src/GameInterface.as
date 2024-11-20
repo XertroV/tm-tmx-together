@@ -51,9 +51,13 @@ class GameInterface {
             _tagsHoverTime = 0;
         }
 
-        UI::SetCursorPos(cp + vec2(100, 0));
+        UI::SameLine();
+        UI::Dummy(vec2(10, 0));
+        UI::SameLine();
+
         UI::AlignTextToFramePadding();
         UI::Text(Icons::StepForward + ":");
+        AddSimpleTooltip("Next Map in...");
         // UI::SameLine();
         // if (UI::Button("10 s")) {
         //     startnew(State::AutoMoveOn, 10);

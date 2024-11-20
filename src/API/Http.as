@@ -77,9 +77,9 @@ const string LengthAndOffset(uint length, uint offset) {
 
 
 Net::HttpRequest@ PluginRequest(const string &in url) {
-    auto r = Net::HttpRequest();
+    Net::HttpRequest@ r = Net::HttpRequest();
     r.Url = url;
-    r.Headers['User-Agent'] = "TM_Plugin:" + Meta::ExecutingPlugin().Name + " / contact=@XertroV,m@xk.io / client_version=" + Meta::ExecutingPlugin().Version;
+    // r.Headers['User-Agent'] = "TM_Plugin:" + Meta::ExecutingPlugin().Name + " / contact=@XertroV,m@xk.io / client_version=" + Meta::ExecutingPlugin().Version;
     return r;
 }
 
@@ -93,4 +93,46 @@ Net::HttpRequest@ PluginGetRequest(const string &in url) {
     auto r = PluginRequest(url);
     r.Method = Net::HttpMethod::Get;
     return r;
+}
+
+
+namespace Http {
+    int64 GetFileSize(const string &in url) {
+        log_debug("GetFileSize: Requesting " + url);
+        auto req = PluginRequest(url);
+        req.Method = Net::HttpMethod::Head;
+        req.Start();
+        while(!req.Finished()) { yield(); }
+        auto respCode = req.ResponseCode();
+        log_debug("GetFileSize: Response code " + respCode);
+        if (respCode == 200) {
+            try {
+                auto len = req.ResponseHeader("content-length");
+                log_debug("GetFileSize: Content-Length " + len);
+                // auto body = req.String(); // Ensure we read the response
+                // log_debug('req body: ' + req.String());
+                // log_debug('req error: ' + req.Error());
+                log_debug('returning filesize: ' + Text::ParseInt64(len));
+                return Text::ParseInt64(len);
+            } catch {
+                log_warn("GetFileSize: Failed to get Content-Length from response headers for " + url);
+                log_warn(getExceptionInfo());
+                return -1;
+            }
+        }
+        // redirects seem to be followed automatically
+        // else if (respCode == 307) {
+        //     auto loc = req.ResponseHeader("location");
+        //     if (loc.Length > 0) {
+        //         log_debug("GetFileSize: Http 307 Redirecting to " + loc);
+        //         return GetFileSize(loc);
+        //     }
+        //     log_warn("GetFileSize: Http 307 Error: Failed to get location from response headers for " + url);
+        //     log_warn("GetFileSize: Http 307 Error: Response Headers: " + Json::Write(req.ResponseHeaders().ToJson()));
+        //     return -1;
+        // }
+        log_warn("GetFileSize Error: Failed to get Content-Length from response headers for " + url);
+        log_warn("GetFileSize Error: Response code " + respCode + " / error: " + req.Error());
+        return -1;
+    }
 }

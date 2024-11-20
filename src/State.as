@@ -450,7 +450,18 @@ namespace State {
         auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID, S_TmxTagsSelectionCsv);
         lastLoadedId = loadNextId = resp['next'];
         loadNextUid = resp['next_uid'];
-        Chat::SendGoodMessage("Next Map ID: " + loadNextId + GetMMNextRespTagsFmt(resp));
+        log_trace("Set next map: " + loadNextId + " (" + loadNextUid + ")");
+        if (resp.HasKey("extra_nb")) {
+            nextMapsExtra.Resize(uint(resp["extra_nb"]));
+            auto extra = resp["extra"];
+            for (uint i = 0; i < extra.Length; i++) {
+                nextMapsExtra[i] = string(extra[i]['next_uid']);
+            }
+            log_trace("Extra next maps: " + string::Join(nextMapsExtra, ", "));
+        } else {
+            nextMapsExtra.Resize(0);
+        }
+        Chat::SendGoodMessage("Next Map ID: " + loadNextId + GetMMNextRespTagsFmt(resp)); // + " \\$888and the following " + nextMapsExtra.Length);
     }
 
     string GetMMNextRespTagsFmt(Json::Value@ resp) {
@@ -475,14 +486,15 @@ namespace State {
     uint lastLoadedId = S_LastTmxID;
     uint loadNextId = S_LastTmxID;
     string loadNextUid;
+    string[] nextMapsExtra;
     void LoadNextTmxMap() {
         currState = GameState::Loading;
         try {
             Chat::SendWarningMessage("Loading Next Map...");
             UpdateNextMap();
-            if (!CheckUploadedToNadeo()) {
+            if (!CheckUploadedToNadeoAndSmall()) {
                 yield();
-                Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
+                Chat::SendWarningMessage("Map not uploaded to Nadeo or too big! Skipping past " + loadNextId);
                 S_LastTmxID = loadNextId;
                 LoadNextTmxMap();
                 return;
@@ -499,9 +511,9 @@ namespace State {
         try {
             Chat::SendWarningMessage("Preparing Next Map...");
             UpdateNextMap();
-            if (!CheckUploadedToNadeo()) {
-                Chat::SendWarningMessage("Map not uploaded to Nadeo! Cannot load " + loadNextId + ". Trying next in 5s.");
-                sleep(5000);
+            if (!CheckUploadedToNadeoAndSmall()) {
+                Chat::SendWarningMessage("Map not uploaded to Nadeo or too big! Cannot load " + loadNextId + ". Trying next in 5s.");
+                sleep(2000);
                 sleep(0);
                 S_LastTmxID = loadNextId;
                 SetNextTmxMap();
@@ -546,11 +558,58 @@ namespace State {
         status = "Checking uploaded to Nadeo...";
         auto map = Core::GetMapFromUid(mapUid.Length == 0 ? loadNextUid : mapUid);
         if (map is null) return false;
-        log_debug("Map ("+map.Uid+") Uploaded: " + map.FileUrl);
+        log_debug("Map ("+map.Uid+") is Uploaded: " + map.FileUrl);
         // todo: implement caching of map details?
-        // max file size: 7366 KB
         return true;
     }
+
+    // check if map is uploaded to Nadeo and is less than 7366 KB
+    bool CheckUploadedToNadeoAndSmall() {
+        status = "Checking uploaded to Nadeo and size...";
+        auto map = Core::GetMapFromUid(loadNextUid);
+        if (map is null) return false;
+        log_debug("Map ("+map.Uid+") is Uploaded: " + map.FileUrl);
+        string fileUrl = map.FileUrl;
+        string uid = map.Uid;
+        @map = null;
+        // check file less than 7366 KB
+        auto fileSize = Http::GetFileSize(fileUrl);
+        status = "Checking uploaded to Nadeo and size... (" + fileSize + " bytes)";
+        if (fileSize < 0) {
+            log_error("Failed to get file size for map: " + uid);
+            return false;
+        }
+        if (fileSize > 7366 * 1024) {
+            NotifyError("Map file size too large: " + (fileSize/1024) + " KB!\nMaximum is 7366 KB");
+            return false;
+        }
+        log_debug("Map file size: " + fileSize + " bytes (uid: " + uid + ")");
+        return true;
+    }
+
+    // // for nextMapsExtra
+    // void CheckExtraUploadedToNadeoOrRemove(const string &in uid) {
+    //     if (!CheckUploadedToNadeo(uid)) {
+    //         log_trace("Extra map not uploaded to Nadeo, removing from list: " + uid);
+    //         auto ix = nextMapsExtra.Find(uid);
+    //         if (ix >= 0) nextMapsExtra.RemoveAt(ix);
+    //     }
+    // }
+
+    // array<Meta::PluginCoroutine@>@ CheckAllExtraUploadedToNadeoOrRemove() {
+    //     array<Meta::PluginCoroutine@>@ routines = {};
+    //     for (uint i = 0; i < nextMapsExtra.Length; i++) {
+    //         routines.InsertLast(startnew(CheckExtraUploadedToNadeoOrRemove, nextMapsExtra[i]));
+    //     }
+    //     return routines;
+    // }
+
+    // bool CheckAllUploadedToNadeo() {
+    //     auto @coros = CheckAllExtraUploadedToNadeoOrRemove();
+    //     auto ret = CheckUploadedToNadeo();
+    //     await(coros);
+    //     return ret;
+    // }
 
     void AutoMoveOn() {
         AutoMoveOn(-1);
@@ -571,11 +630,11 @@ namespace State {
         }
         Chat::SendWarningMessage("Setting Next Map to load in " + moveOnIn + " seconds.");
         UpdateNextMap();
-        if (!CheckUploadedToNadeo()) {
-            Chat::SendWarningMessage("Map not uploaded to Nadeo! Skipping past " + loadNextId);
+        if (!CheckUploadedToNadeoAndSmall()) {
+            Chat::SendWarningMessage("Map not uploaded to Nadeo or too big! Skipping past " + loadNextId);
             S_LastTmxID = loadNextId;
             currState = GameState::Running;
-            sleep(5000);
+            sleep(2000);
             sleep(0);
             AutoMoveOn();
             return;
@@ -592,16 +651,26 @@ namespace State {
         SetNextRoomTA();
     }
 
+    // setting map list doesn't reset position in map list; complex to figure out
+    string[]@ GetNextMapsList() {
+        string[]@ maps = {loadNextUid};
+        // for (uint i = 0; i < nextMapsExtra.Length; i++) {
+        //     maps.InsertLast(nextMapsExtra[i]);
+        // }
+        return maps;
+    }
+
     int lastSetNextMap;
     int mapTimeLimitWithExt = 300;
     void SetNextRoomTA(uint timelimit = 1, uint waitSeconds = 1) {
         int myLastSetNextMap = Time::Now;
         lastSetNextMap = myLastSetNextMap;
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
+        auto next_maps = GetNextMapsList();
         auto builder = BRM::CreateRoomBuilder(clubId, roomId)
             .SetTimeLimit(timelimit)
             .SetChatTime(0)
-            .SetMaps({loadNextUid})
+            .SetMaps(next_maps)
             .SetLoadingScreenUrl(ChooseNextLoadingScreenUrl())
             .SetModeSetting("S_DelayBeforeNextMap", "1")
             .SetMode(BRM::GameMode::TimeAttack);
@@ -622,7 +691,7 @@ namespace State {
         status = "Adjusting room time limit to " + limit;
         builder.SaveRoom();
         status = "Room finalized, awaiting map change...";
-        AwaitMapUidLoad(loadNextUid);
+        AwaitMapUidLoad(next_maps);
         status = "Done";
         S_LastTmxID = loadNextId;
         Meta::SaveSettings();
@@ -677,13 +746,13 @@ namespace State {
         status = "Adjusting room time limit to " + limit;
         builder.SaveRoom();
         status = "Room finalized, awaiting map change...";
-        AwaitMapUidLoad(S_LobbyMapUID);
+        AwaitMapUidLoad({S_LobbyMapUID});
         status = "Done";
         currState = GameState::NotRunning;
         return;
     }
 
-    void AwaitMapUidLoad(const string &in uid) {
+    void AwaitMapUidLoad(const string[] &in uids) {
         auto app = GetApp();
         while (true) {
             yield();
@@ -692,7 +761,7 @@ namespace State {
             // wait for a map
             if (app.RootMap is null) continue;
             // check uid
-            if (app.RootMap.EdChallengeId != uid) continue;
+            if (uids.Find(app.RootMap.EdChallengeId) < 0) continue;
             // loaded correct map
             break;
         }
