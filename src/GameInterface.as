@@ -32,9 +32,10 @@ class GameInterface {
         // UI::SetNextItemWidth(130);
         // S_LastTmxID = UI::InputInt("Next Map", S_LastTmxID + 1) - 1;
         auto cp = UI::GetCursorPos();
-        if (UI::Button("Next")) {
+        if (UI::Button(Icons::StepForward + "##Next")) {
             startnew(State::LoadNextTmxMap);
         }
+        AddSimpleTooltip("Load next map now");
         UI::SameLine();
         if (UI::Button(Icons::Tags + "##tag-settings")) {
             g_TmxTagWindowOpen = true;
@@ -51,13 +52,31 @@ class GameInterface {
         }
 
         UI::SetCursorPos(cp + vec2(100, 0));
-        if (UI::Button("Next in " + S_AutoMoveOnInSeconds + " s")) {
+        UI::AlignTextToFramePadding();
+        UI::Text(Icons::StepForward + ":");
+        // UI::SameLine();
+        // if (UI::Button("10 s")) {
+        //     startnew(State::AutoMoveOn, 10);
+        // }
+        UI::SameLine();
+        if (UI::Button(tostring(S_AutoMoveOnInSeconds) + " s")) {
             startnew(State::AutoMoveOn);
         }
-        UI::SetCursorPos(cp + vec2(210, 0));
-        if (UI::Button("To Lobby")) {
+        AddSimpleTooltip("Next in " + S_AutoMoveOnInSeconds + " seconds");
+        UI::SameLine();
+        if (UI::Button("5 m")) {
+            startnew(State::AutoMoveOn, 300);
+        }
+        AddSimpleTooltip("Next in 5 minutes");
+        UI::SameLine();
+        UI::Dummy(vec2(10, 0));
+        UI::SameLine();
+        // UI::SetCursorPos(cp + vec2(210, 0));
+        if (UI::Button(Icons::Eject)) {
             startnew(State::BackToLobby);
         }
+        AddSimpleTooltip("Back to Lobby");
+
         if (State::mapTimeLimitWithExt > 0) {
             UI::Separator();
             if (UI::Button("Extend Time Limit")) {

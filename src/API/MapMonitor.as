@@ -21,8 +21,9 @@ namespace MapMonitor {
     }
 
     Json::Value@ GetNextMapByTMXTrackID(int TrackID, string tags_csv = "") {
-        string ts = tags_csv.Length > 0 ? "?tags=" + tags_csv : "";
-        return CallMapMonitorApiPath('/tmx/' + TrackID + '/next' + ts);
+        string gs = "?extra=5";
+        if (tags_csv.Length > 0) gs += "&tags=" + tags_csv;
+        return CallMapMonitorApiPath('/tmx/' + TrackID + '/next' + gs);
     }
 
     Json::Value@ GetTmxTags() {

@@ -542,19 +542,26 @@ namespace State {
 
     }
 
-    bool CheckUploadedToNadeo() {
+    bool CheckUploadedToNadeo(const string &in mapUid = "") {
         status = "Checking uploaded to Nadeo...";
-        auto map = Core::GetMapFromUid(loadNextUid);
+        auto map = Core::GetMapFromUid(mapUid.Length == 0 ? loadNextUid : mapUid);
         if (map is null) return false;
+        log_debug("Map ("+map.Uid+") Uploaded: " + map.FileUrl);
         // todo: implement caching of map details?
+        // max file size: 7366 KB
         return true;
     }
 
     void AutoMoveOn() {
+        AutoMoveOn(-1);
+    }
+
+    void AutoMoveOn(int64 moveOnIn) {
         if (GetApp().CurrentPlayground is null || currState == GameState::Loading) return;
         currState = GameState::Loading;
-        auto moveOnIn = S_AutoMoveOnInSeconds;
-        if (S_AutoMoveOnBasedOnAT) {
+        bool isDefault = moveOnIn < 0;
+        if (isDefault) moveOnIn = S_AutoMoveOnInSeconds;
+        if (isDefault && S_AutoMoveOnBasedOnAT) {
             try {
                 moveOnIn = (GetApp().RootMap.ChallengeParameters.AuthorScore / 1000 + 11);
             } catch {
