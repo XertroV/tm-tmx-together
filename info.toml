@@ -2,7 +2,7 @@
 name     = "TMX Together"
 author   = "XertroV"
 category = "TMX"
-version  = "0.2.2"
+version  = "0.2.3"
 siteid   = 442
 
 [script]
