@@ -2,7 +2,7 @@
 name     = "Server-Game Scoreboard"
 author   = "XertroV"
 category = "TMX"
-version  = "1.0.0"
+version  = "1.0.1"
 siteid   = 564
 
 [script]
