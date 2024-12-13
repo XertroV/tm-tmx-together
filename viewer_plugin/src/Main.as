@@ -131,7 +131,7 @@ void RefreshScoreboardFromNews() {
 	auto newsId = _newsActivityId;
 	auto deets = Live::GetNewsDetails(clubId, newsId);
 	string body = deets['body'];
-	log_trace("TMXT scoreboard news body:\n" + body);
+	dev_trace("TMXT scoreboard news body:\n" + body);
 	// scoreboardTitle = "Scores";
 	// if (body.StartsWith("# ")) {
 	// 	auto ix = body.IndexOf('\n');
@@ -190,29 +190,32 @@ Score@ ParseScoreLine(const string &in line) {
 		if (line.Length < 2) return null;
 		auto ix = line.IndexOf('.');
 		if (ix < 0) return null;
+		int rank = -1, wrs = -1, ats = -1, golds = -1, mapsPlayed = -1;
 		// log_trace("rank: " + line.SubStr(0, ix));
-		auto rank = Text::ParseInt(line.SubStr(0, ix));
+		Text::TryParseInt(line.SubStr(0, ix), rank);
+
 		string rest = line.SubStr(ix + 1).Trim();
+
 		ix = rest.IndexOf('\t');
 		auto name = rest.SubStr(0, ix);
 		rest = rest.SubStr(ix + 1).Trim();
+
 		ix = rest.IndexOf('\t');
-		// log_trace("rest (wrs, ats, golds): " + rest);
-		auto wrs = Text::ParseInt(rest.SubStr(0, ix));
-		// log_trace("wrs: " + wrs);
+		if (!Text::TryParseInt(rest.SubStr(0, ix), wrs)) dev_warn("failed to parse wrs ("+rest.SubStr(0, ix)+")");
 		rest = rest.SubStr(ix + 1).Trim();
+
 		ix = rest.IndexOf('\t');
-		// log_trace("rest (ats, golds): " + rest);
-		auto ats = Text::ParseInt(rest.SubStr(0, ix));
-		// log_trace("ats: " + ats);
+		if (!Text::TryParseInt(rest.SubStr(0, ix), ats)) dev_warn("failed to parse ats ("+rest.SubStr(0, ix)+")");
 		rest = rest.SubStr(ix + 1).Trim();
+
 		ix = rest.IndexOf('\t');
-		// log_trace("rest (golds, count): " + rest);
-		auto golds = Text::ParseInt(rest.SubStr(0, ix));
-		golds = -1;
-		// log_trace("golds: " + golds);
+		if (!Text::TryParseInt(rest.SubStr(0, ix), golds)) dev_warn("failed to parse golds ("+rest.SubStr(0, ix)+")");
 		rest = rest.SubStr(ix + 1).Trim();
-		auto mapsPlayed = Text::ParseInt(rest);
+
+		if (!Text::TryParseInt(rest, mapsPlayed)) dev_warn("failed to parse mapsPlayed");
+
+		// print("parsed score: " + rank + " " + name + " " + wrs + " " + ats + " " + golds + " " + mapsPlayed + " | FROM | " + line);
+
 		return Score(rank, name, wrs, ats, golds, mapsPlayed);
 	} catch {
 		trace("failed to parse score line: " + line + " (exception: "+getExceptionInfo()+")");
@@ -265,4 +268,17 @@ bool IsSequencePlayingOrFinished() {
 
 bool IsSequencePlaying() {
     return CurrentUISequence() == SGamePlaygroundUIConfig::EUISequence::Playing;
+}
+
+
+void dev_warn(const string &in msg) {
+#if DEV
+	log_warn(msg);
+#endif
+}
+
+void dev_trace(const string &in msg) {
+#if DEV
+	trace(msg);
+#endif
 }
