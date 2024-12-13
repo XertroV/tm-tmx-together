@@ -8,7 +8,7 @@ bool g_ForceShowLeaderboard = false;
 
 interface ScoreboardElement {
     // Draw using nvg
-    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, uint[]@ mc = null, bool lifetimeMapCount = false);
+    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, int[]@ mc = null, bool lifetimeMapCount = false);
     void DrawCompactLifeTime(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0);
     bool IsRanked();
 }
@@ -24,7 +24,7 @@ class ScoreboardHeading : ScoreboardElement {
         this.name = name;
     }
 
-    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, uint[]@ mc = null, bool lifetimeMapCount = false) {
+    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, int[]@ mc = null, bool lifetimeMapCount = false) {
         DrawAltHeading(name, pos, nameWidth, medalSpacing, fontSize, alpha);
     }
 
@@ -94,8 +94,8 @@ namespace Scoreboard {
         ScoreboardElement@ el;
         uint rank = 0;
 
-        uint rowCount = 0;
-        uint colCount = 0;
+        int rowCount = 0;
+        int colCount = 0;
 
         float colWidthWPadding = colWidth + pmcPad.x * 3;
 

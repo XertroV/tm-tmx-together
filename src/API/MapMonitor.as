@@ -20,7 +20,7 @@ namespace MapMonitor {
         return CallMapMonitorApiPath('/map/' + mapUid + '/nb_players/refresh');
     }
 
-    Json::Value@ GetNextMapByTMXTrackID(int TrackID, string tags_csv = "") {
+    Json::Value@ GetNextMapByTMXTrackID(int TrackID, const string &in tags_csv = "") {
         string gs = "?extra=5";
         if (tags_csv.Length > 0) gs += "&tags=" + tags_csv;
         return CallMapMonitorApiPath('/tmx/' + TrackID + '/next' + gs);

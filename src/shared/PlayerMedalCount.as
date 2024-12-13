@@ -19,10 +19,10 @@ enum Medal {
 class PlayerMedalCount : ScoreboardElement {
     string name;
     string login;
-    uint[] medalCounts = {0, 0, 0, 0, 0, 0};
-    uint[] lifetimeMedalCounts = {0, 0, 0, 0, 0, 0};
-    uint mapCount = 0;
-    uint mapCountSession = 0;
+    int[] medalCounts = {0, 0, 0, 0, 0, 0};
+    int[] lifetimeMedalCounts = {0, 0, 0, 0, 0, 0};
+    int mapCount = 0;
+    int mapCountSession = 0;
     vec4 col = vec4(1);
     uint firstSeen;
     uint lastSeen;
@@ -117,45 +117,45 @@ class PlayerMedalCount : ScoreboardElement {
         }
     }
 
-    uint get_NbWRs() {
+    int get_NbWRs() {
         return medalCounts[0];
     }
-    uint get_NbATs() {
+    int get_NbATs() {
         return medalCounts[1];
     }
-    uint get_NbGolds() {
+    int get_NbGolds() {
         return medalCounts[2];
     }
-    uint get_NbSilvers() {
+    int get_NbSilvers() {
         return medalCounts[3];
     }
-    uint get_NbBronzes() {
+    int get_NbBronzes() {
         return medalCounts[4];
     }
-    uint get_NbNoMedals() {
+    int get_NbNoMedals() {
         return medalCounts[5];
     }
 
-    uint get_NbLifeWRs() {
+    int get_NbLifeWRs() {
         return lifetimeMedalCounts[0];
     }
-    uint get_NbLifeATs() {
+    int get_NbLifeATs() {
         return lifetimeMedalCounts[1];
     }
-    uint get_NbLifeGolds() {
+    int get_NbLifeGolds() {
         return lifetimeMedalCounts[2];
     }
-    uint get_NbLifeSilvers() {
+    int get_NbLifeSilvers() {
         return lifetimeMedalCounts[3];
     }
-    uint get_NbLifeBronzes() {
+    int get_NbLifeBronzes() {
         return lifetimeMedalCounts[4];
     }
-    uint get_NbLifeNoMedals() {
+    int get_NbLifeNoMedals() {
         return lifetimeMedalCounts[5];
     }
 
-    uint get_NbLifeMedalsTotal() {
+    int get_NbLifeMedalsTotal() {
         return lifetimeMedalCounts[0] + lifetimeMedalCounts[1] + lifetimeMedalCounts[2] + lifetimeMedalCounts[3] + lifetimeMedalCounts[4];
     }
 
@@ -175,7 +175,7 @@ class PlayerMedalCount : ScoreboardElement {
         return GenerateSummaryStr(lifetimeMedalCounts, useName ? name + ":" : "All Time:");
     }
 
-    string GenerateSummaryStr(uint[]@ mc, const string &in nameReplacement = "") {
+    string GenerateSummaryStr(int[]@ mc, const string &in nameReplacement = "") {
         return "{name} ( $<$o$<$f19{wr}$> / $<$8f4{at}$> / $<$fd0{gold}$> / $<$abb{silver}$> / $<$c73{bronze}$> / $<$fff{noMedal}$>$> )"
             .Replace("{name}", nameReplacement.Length == 0 ? name : nameReplacement)
             .Replace("{wr}", tostring(mc[0]))
@@ -213,13 +213,13 @@ class PlayerMedalCount : ScoreboardElement {
         nvg::Text(pos + pmcPad, name);
         auto medalStart = pos + pmcPad + vec2(nameWidth, 0);
         for (uint i = 0; i < medalCounts.Length; i++) {
-            nvg::Text(medalStart + vec2(medalSpacing * float(i), 0), tostring(medalCounts[i]));
+            nvg::Text(medalStart + vec2(medalSpacing * float(i), 0), FmtScoreboardCount(medalCounts[i]));
         }
-        nvg::Text(medalStart + vec2(medalSpacing * float(medalCounts.Length), 0), tostring(mapCount));
+        nvg::Text(medalStart + vec2(medalSpacing * float(medalCounts.Length), 0), FmtScoreboardCount(mapCount));
         nvg::ClosePath();
     }
 
-    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, uint[]@ mc = null, bool lifetimeMapCount = false) {
+    void DrawCompact(uint rank, vec2 &in pos, float nameWidth, float medalSpacing, float fontSize, float alpha = 1.0, int[]@ mc = null, bool lifetimeMapCount = false) {
         lifetimeMapCount = lifetimeMapCount || ScoreboardTypeLifetime;
         if (mc is null) {
             if (lifetimeMapCount) {
@@ -277,7 +277,7 @@ class PlayerMedalCount : ScoreboardElement {
     }
 }
 
-string FmtScoreboardCount(uint count) {
+string FmtScoreboardCount(int count) {
     return count < 0 ? "" : tostring(count);
 }
 

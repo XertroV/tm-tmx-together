@@ -4,7 +4,7 @@ int nvgFont = 0;
 bool S_AlwaysHideWhileDriving = true;
 
 void Main() {
-	nvgFont = nvg::LoadFont("DroidSans-Bold.ttf", true, true);
+	nvgFont = nvg::LoadFont("DroidSans-Bold.ttf");
 #if DEV
 	// g_ForceShowLeaderboard = true;
 #endif
@@ -209,6 +209,7 @@ Score@ ParseScoreLine(const string &in line) {
 		ix = rest.IndexOf('\t');
 		// log_trace("rest (golds, count): " + rest);
 		auto golds = Text::ParseInt(rest.SubStr(0, ix));
+		golds = -1;
 		// log_trace("golds: " + golds);
 		rest = rest.SubStr(ix + 1).Trim();
 		auto mapsPlayed = Text::ParseInt(rest);
