@@ -30,6 +30,9 @@ enum NextMapCondTrigger {
     Time_Limit,
 }
 
+// 2024 updated to "7 336 960 octets total size"
+const uint MAP_LIMIT_OCTETS = 7336960;
+
 namespace TmxTogetherState {
     bool get_IsNotRunning() { return State::IsNotRunning; }
     bool get_IsRunning() { return State::IsRunning; }
@@ -563,7 +566,7 @@ namespace State {
         return true;
     }
 
-    // check if map is uploaded to Nadeo and is less than 7366 KB
+    // check if map is uploaded to Nadeo and is less than ~7366 KB
     bool CheckUploadedToNadeoAndSmall() {
         status = "Checking uploaded to Nadeo and size...";
         auto map = Core::GetMapFromUid(loadNextUid);
@@ -572,14 +575,14 @@ namespace State {
         string fileUrl = map.FileUrl;
         string uid = map.Uid;
         @map = null;
-        // check file less than 7366 KB
+        // check file less than ~7366 KB
         auto fileSize = Http::GetFileSize(fileUrl);
         status = "Checking uploaded to Nadeo and size... (" + fileSize + " bytes)";
         if (fileSize < 0) {
             log_error("Failed to get file size for map: " + uid);
             return false;
         }
-        if (fileSize > 7366 * 1024) {
+        if (fileSize > MAP_LIMIT_OCTETS) {
             NotifyError("Map file size too large: " + (fileSize/1024) + " KB!\nMaximum is 7366 KB");
             return false;
         }

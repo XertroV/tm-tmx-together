@@ -1,5 +1,8 @@
 int nvgFont = 0;
 
+[Setting category="Score Board" name="Always hide while driving?"]
+bool S_AlwaysHideWhileDriving = true;
+
 void Main() {
 	nvgFont = nvg::LoadFont("DroidSans-Bold.ttf", true, true);
 #if DEV
@@ -26,6 +29,7 @@ void Render() {
     bool isLoading = app.LoadProgress.State != NGameLoadProgress::EState::Disabled
         || app.Switcher.ModuleStack.Length == 0;
     if (!isLoading) {
+		if (S_AlwaysHideWhileDriving && IsSequencePlaying()) return;
         if (Time::Now > g_LastLoadingScreen + uint(S_SBTimeoutSec * 1000) && !g_ForceShowLeaderboard) return;
     } else if (!g_ForceShowLeaderboard) {
         g_LastLoadingScreen = Time::Now;
@@ -241,4 +245,23 @@ void WaitForPodiumSeqToRefresh() {
 			yield();
 		}
 	}
+}
+
+
+
+SGamePlaygroundUIConfig::EUISequence CurrentUISequence() {
+    try {
+        auto cp = cast<CSmArenaClient>(GetApp().CurrentPlayground);
+        return cp.GameTerminals[0].UISequence_Current;
+    } catch {}
+    return SGamePlaygroundUIConfig::EUISequence::None;
+}
+
+bool IsSequencePlayingOrFinished() {
+    auto seq = CurrentUISequence();
+    return seq == SGamePlaygroundUIConfig::EUISequence::Playing || seq == SGamePlaygroundUIConfig::EUISequence::Finish;
+}
+
+bool IsSequencePlaying() {
+    return CurrentUISequence() == SGamePlaygroundUIConfig::EUISequence::Playing;
 }

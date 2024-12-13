@@ -258,13 +258,13 @@ class PlayerMedalCount : ScoreboardElement {
             hOff = c < 100 ? 0. : c < 1000 ? fontSize * .1 : fontSize * .2;
             nvg::FontSize(fs);
             nvg::FillColor(medalColors[i] * vec4(1, 1, 1, alpha));
-            nvg::Text(medalStart + vec2(medalSpacing * float(i), hOff) + textOffset, tostring(mc[i]));
+            nvg::Text(medalStart + vec2(medalSpacing * float(i), hOff) + textOffset, FmtScoreboardCount(mc[i]));
         }
         fs = mapCount < 100 ? fontSize * 0.95 : mapCount < 1000 ? fontSize * .72 : fontSize * .60;
         hOff = mapCount < 100 ? 0. : mapCount < 1000 ? fontSize * .1 : fontSize * .2;
         nvg::FontSize(fs);
         nvg::FillColor(col * vec4(1, 1, 1, alpha));
-        nvg::Text(medalStart + vec2(medalSpacing * float(nbMedalsToDraw), hOff) + textOffset, tostring(lifetimeMapCount ? mapCount : mapCountSession));
+        nvg::Text(medalStart + vec2(medalSpacing * float(nbMedalsToDraw), hOff) + textOffset, FmtScoreboardCount(lifetimeMapCount ? mapCount : mapCountSession));
         nvg::ClosePath();
     }
 
@@ -275,6 +275,10 @@ class PlayerMedalCount : ScoreboardElement {
     bool IsRanked() {
         return true;
     }
+}
+
+string FmtScoreboardCount(uint count) {
+    return count < 0 ? "" : tostring(count);
 }
 
 vec4[] medalColors = {

@@ -2,7 +2,7 @@
 uint g_LastLoadingScreen = 0;
 
 [Setting category="Score Board" name="Show Scores for X seconds after loading screen" min=0 max=10]
-float S_SBTimeoutSec = 3.0;
+float S_SBTimeoutSec = 7.0;
 
 bool g_ForceShowLeaderboard = false;
 
@@ -122,69 +122,6 @@ namespace Scoreboard {
             colCount++;
             nextPos = vec2(xStart + colWidthWPadding * float(colCount), yStart);
         }
-
-        // nbPlayers = Math::Min(nbPlayers, scores.Length);
-        // for (int i = 0; i < nbPlayers; i++) {
-        //     PlayerMedalCount@ pmc = cast<PlayerMedalCount>(scores[i]);
-        //     if (pmc is null) continue;
-        //     pmc.DrawCompact(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
-        //     nextPos.y += linePxHeight;
-        // }
-
-        // nextPos = vec2(xStart + colWidthWPadding, yStart);
-
-        // // DrawAltHeading("New Players", nextPos, nameWidth, medalSpacing, fontSize);
-        // // nextPos.y += linePxHeight;
-
-
-        // // for (int i = 0; i < nbOtherRows; i++) {
-        // //     PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::NewestPlayerMedals[i]);
-        // //     if (pmc is null) continue;
-        // //     pmc.DrawCompact(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
-        // //     nextPos.y += linePxHeight;
-        // // }
-
-        // auto nbGoats = State::GOATPlayerMedals.Length;
-
-        // // nextPos.y += linePxHeight;
-        // DrawAltHeading("GOAT Players", nextPos, nameWidth, medalSpacing, fontSize);
-        // nextPos.y += linePxHeight;
-
-        // for (int i = 0; i < nbPlayers; i++) {
-        //     PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[i]);
-        //     if (pmc is null) continue;
-        //     pmc.DrawCompactLifeTime(i + 1, nextPos, nameWidth, medalSpacing, fontSize);
-        //     nextPos.y += linePxHeight;
-        // }
-
-        // // add 1 to players here because we don't draw a heading
-        // auto priorGoatRows = nbPlayers;
-        // nbPlayers += 1;
-
-        // // col 3, more GOATs
-        // nextPos = vec2(xStart + colWidthWPadding * 2., yStart);
-
-        // for (int i = 0; i < nbPlayers; i++) {
-        //     auto ix = priorGoatRows + i;
-        //     if (ix >= nbGoats) break;
-        //     PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[ix]);
-        //     if (pmc is null) continue;
-        //     pmc.DrawCompactLifeTime(ix + 1, nextPos, nameWidth, medalSpacing, fontSize);
-        //     nextPos.y += linePxHeight;
-        // }
-
-        // // col 4, more GOATs
-        // nextPos = vec2(xStart + colWidthWPadding * 3., yStart);
-        // priorGoatRows += nbPlayers;
-
-        // for (int i = 0; i < nbPlayers; i++) {
-        //     auto ix = priorGoatRows + i;
-        //     if (ix >= nbGoats) break;
-        //     PlayerMedalCount@ pmc = cast<PlayerMedalCount>(State::GOATPlayerMedals[ix]);
-        //     if (pmc is null) continue;
-        //     pmc.DrawCompactLifeTime(ix + 1, nextPos, nameWidth, medalSpacing, fontSize);
-        //     nextPos.y += linePxHeight;
-        // }
     }
 }
 
