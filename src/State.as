@@ -204,10 +204,10 @@ namespace State {
             if (players.Length == 0) continue;
             if (!IsSequencePlayingOrFinished()) continue;
             auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(players[0]);
-            bool playerGotWR = IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId)
-                && bestPlayer.BestTime < (rd.Rules_GameTime - rd.Rules_StartTime)
-                && bestPlayer.IsFinished
-                && rd.Rules_StartTime < 200000000;
+            bool playerGotWR = bestPlayer.IsFinished
+                && bestPlayer.LastCpTime < (rd.Rules_GameTime - rd.Rules_StartTime)
+                && IsPlayerTimeWR(bestPlayer.LastCpTime, bestPlayer.WebServicesUserId)
+                && rd.Rules_StartTime < 2000000000;
             if (playerGotWR) {
                 Notify("detected player WR: " + bestPlayer.Name + ", " + bestPlayer.BestTime + ", wr: " + wrTime);
                 wrMapUid = lastMap;
