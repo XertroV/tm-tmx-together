@@ -205,7 +205,7 @@ namespace State {
             if (!IsSequencePlayingOrFinished()) continue;
             auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(players[0]);
             bool playerGotWR = bestPlayer.IsFinished
-                && bestPlayer.LastCpTime < (rd.Rules_GameTime - rd.Rules_StartTime)
+                && bestPlayer.LastCpTime < rd.Rules_MillisSinceStart
                 && IsPlayerTimeWR(bestPlayer.LastCpTime, bestPlayer.WebServicesUserId)
                 && rd.Rules_StartTime < 2000000000;
             if (playerGotWR) {
@@ -237,7 +237,7 @@ namespace State {
         auto rd = MLFeed::GetRaceData_V4();
         if (rd.SortedPlayers_TimeAttack.Length == 0) return;
         auto bestPlayer = cast<MLFeed::PlayerCpInfo_V4>(rd.SortedPlayers_TimeAttack[0]);
-        bool isWR = IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId);
+        bool isWR = bestPlayer.BestRaceTimes.Length == rd.CPsToFinish && IsPlayerTimeWR(bestPlayer.BestTime, bestPlayer.WebServicesUserId);
         auto medalStr = isWR ? "$<$f19$oWorld Record!!!$>" : GetMedalStringForTime(bestPlayer.BestTime);
         string msg = "gz " + bestPlayer.Name + " (" + Time::Format(bestPlayer.BestTime) + " - " + medalStr + ")";
         string m = GetWSIDToCustomMessage(bestPlayer.WebServicesUserId);
