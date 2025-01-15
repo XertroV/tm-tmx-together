@@ -430,7 +430,7 @@ namespace State {
     // should be called once per frame when necessary
     void CheckStillInServer() {
 #if DEV
-        return;
+        // return;
 #endif
         if (!_IsStillInServer()) {
             trace("Detected not in server, resetting game state");
@@ -651,7 +651,7 @@ namespace State {
     }
 
     void InitializeRoom() {
-        SetNextRoomTA();
+        SetNextRoomTA(300);
     }
 
     // setting map list doesn't reset position in map list; complex to figure out

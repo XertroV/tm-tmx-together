@@ -55,12 +55,12 @@ Json::Value@ CallMapMonitorApiPath(const string &in path) {
     log_trace("[CallMapMonitorApiPath] Requesting: " + url);
     Net::HttpRequest@ req = Net::HttpRequest();
     req.Url = MM_API_ROOT + path;
-    req.Headers['User-Agent'] = 'MapInfo/Openplanet-Plugin/contact=@XertroV';
+    req.Headers['User-Agent'] = 'TmxTogether/Openplanet-Plugin/contact=@XertroV';
     // req.Headers['Authorization'] = 'openplanet ' + token;
     req.Method = Net::HttpMethod::Get;
     req.Start();
     while(!req.Finished()) { yield(); }
-    return Json::Parse(req.String());
+    return req.Json();
 }
 
 // Ensure we aren't calling a bad path
