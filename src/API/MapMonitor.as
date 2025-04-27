@@ -75,16 +75,16 @@ namespace MapMonitor {
         minBufferedMaps = Math::Max(minBufferedMaps, 3);
         auto pl = cast<GetNextPayload>(payload);
         if (lastPrepopCheck_MapId == pl.TrackID) return;
-        dev_warn("PrepopulateNextMap_Async: " + pl.TrackID);
+        log_trace("PrepopulateNextMap_Async: " + pl.TrackID);
         lastPrepopCheck_MapId = pl.TrackID;
         auto maps_NbBuffered_LastId = CountMapsBufferedFrom(pl.TrackID);
         if (maps_NbBuffered_LastId.x > minBufferedMaps) return;
-        dev_warn("PrepopulateNextMap_Async: sleeping for a bit");
+        log_trace("PrepopulateNextMap_Async: sleeping for a bit");
         sleep(2000 + Math::Rand(3000, 7000));
         maps_NbBuffered_LastId = CountMapsBufferedFrom(pl.TrackID);
-        dev_warn("PrepopulateNextMap_Async: maps_NbBuffered_LastId = " + maps_NbBuffered_LastId.ToString());
+        log_trace("PrepopulateNextMap_Async: maps_NbBuffered_LastId = " + maps_NbBuffered_LastId.ToString());
         if (maps_NbBuffered_LastId.x > minBufferedMaps) return;
-        dev_warn("Not enough maps buffered after " + pl.TrackID + ": " + maps_NbBuffered_LastId.x + " / " + minBufferedMaps + ". Getting more...");
+        log_trace("Not enough maps buffered after " + pl.TrackID + ": " + maps_NbBuffered_LastId.x + " / " + minBufferedMaps + ". Getting more...");
         AwaitNextMap_Cached(maps_NbBuffered_LastId.y, pl.tags_csv, Math::Min(minBufferedMaps, 20), true);
         startnew(CoroutineFuncUserdata(EnsurePrepopulatedInAdvance), pl);
     }
