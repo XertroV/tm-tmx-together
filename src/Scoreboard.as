@@ -82,7 +82,7 @@ class StateScoreboardIter : ScoreboardIter {
             return ScoreboardHeading("Session Top");
         }
         if (!phase2) {
-            if (ix >= 12 || ix >= State::SortedPlayerMedals.Length) {
+            if (ix >= 12 || ix >= int(State::SortedPlayerMedals.Length)) {
                 phase2 = true;
                 ix = 0;
                 return ScoreboardHeading("GOAT Players");
@@ -92,14 +92,14 @@ class StateScoreboardIter : ScoreboardIter {
                 return ret;
             }
         }
-        if (ix > 40 || ix >= State::GOATPlayerMedals.Length) return null;
+        if (ix > 40 || ix >= int(State::GOATPlayerMedals.Length)) return null;
         auto @ret = State::GOATPlayerMedals[ix++];
         ret.ScoreboardTypeLifetime = true;
         return ret;
     }
 
     bool Done() {
-        return phase2 && (ix >= 40 || ix >= State::GOATPlayerMedals.Length);
+        return phase2 && (ix >= 40 || ix >= int(State::GOATPlayerMedals.Length));
     }
 }
 

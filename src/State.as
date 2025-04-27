@@ -73,6 +73,7 @@ namespace State {
         startnew(GetOrCreateClubNewsActivity);
         startnew(LoadNextTmxMap);
         StartCoros();
+        MapMonitor::SignalGetNextMap_Cached(S_LastTmxID, S_TmxTagsSelectionCsv);
     }
 
     void SetServerName() {
@@ -95,6 +96,7 @@ namespace State {
         auto cp = cast<CSmArenaClient>(GetApp().CurrentPlayground);
         if (cp !is null) startnew(AwaitRulesStart);
         StartCoros();
+        MapMonitor::SignalGetNextMap_Cached(S_LastTmxID, S_TmxTagsSelectionCsv);
     }
 
     void HardReset() {
@@ -270,13 +272,13 @@ namespace State {
         }
         string[] body = {"# Session Top\n"};
         auto nb = Math::Min(SortedPlayerMedals.Length, 12);
-        for (uint i = 0; i < nb; i++) {
+        for (int i = 0; i < nb; i++) {
             auto pmc = SortedPlayerMedals[i];
             body.InsertLast(pmc.ToScoreboardLineString(i + 1, false));
         }
         body.InsertLast("# GOAT Players\n");
         nb = Math::Min(GOATPlayerMedals.Length, 40);
-        for (uint i = 0; i < nb; i++) {
+        for (int i = 0; i < nb; i++) {
             auto pmc = GOATPlayerMedals[i];
             body.InsertLast(pmc.ToScoreboardLineString(i + 1, true));
         }
@@ -449,8 +451,9 @@ namespace State {
     }
 
     void UpdateNextMap() {
-        status = "Loading next TMX map...";
-        auto resp = MapMonitor::GetNextMapByTMXTrackID(S_LastTmxID, S_TmxTagsSelectionCsv);
+        status = "Loading next TMX map... (API or Cache)";
+        MapMonitor::SignalGetNextMap_Cached(S_LastTmxID, S_TmxTagsSelectionCsv);
+        auto resp = MapMonitor::AwaitNextMap_Cached(S_LastTmxID, S_TmxTagsSelectionCsv);
         lastLoadedId = loadNextId = resp['next'];
         loadNextUid = resp['next_uid'];
         log_trace("Set next map: " + loadNextId + " (" + loadNextUid + ")");
@@ -510,6 +513,7 @@ namespace State {
     }
 
     void SetNextTmxMap() {
+        MapMonitor::SignalGetNextMap_Cached(S_LastTmxID, S_TmxTagsSelectionCsv);
         currState = GameState::Loading;
         try {
             Chat::SendWarningMessage("Preparing Next Map...");
@@ -569,11 +573,57 @@ namespace State {
     // check if map is uploaded to Nadeo and is less than ~7366 KB
     bool CheckUploadedToNadeoAndSmall() {
         status = "Checking uploaded to Nadeo and size...";
-        auto map = Core::GetMapFromUid(loadNextUid);
+        return Await_UploadAndSmallCheck(loadNextUid);
+    }
+
+    dictionary@ uasCheckLoading = dictionary();
+    dictionary@ uasCheckOkay = dictionary();
+    dictionary@ uasCheckNotOkay = dictionary();
+
+    bool Await_UploadAndSmallCheck(const string &in uid) {
+        while (uasCheckLoading.Exists(uid)) yield();
+        if (uasCheckOkay.Exists(uid)) return true;
+        if (uasCheckNotOkay.Exists(uid)) return false;
+
+        uasCheckLoading[uid] = true;
+        auto isOkay = false;
+        try {
+            isOkay = _RunCheck_UploadAndSmall(uid);
+        } catch {
+            NotifyError("Something went wrong checking map upload and size: " + getExceptionInfo());
+            uasCheckLoading.Delete(uid);
+            return false;
+        }
+        uasCheckLoading.Delete(uid);
+
+        // populate either dict depending on isOkay
+        if (isOkay) uasCheckOkay[uid] = true;
+        else uasCheckNotOkay[uid] = true;
+        return isOkay;
+    }
+
+    void SignalCache_UploadAndSmallCheck(const string &in uid) {
+        if (uasCheckLoading.Exists(uid)) return;
+        if (uasCheckOkay.Exists(uid)) return;
+        if (uasCheckNotOkay.Exists(uid)) return;
+        startnew(Cache_UploadAndSmallCheck, uid);
+    }
+    // startnew me
+    void Cache_UploadAndSmallCheck(const string &in uid) {
+        if (uasCheckLoading.Exists(uid)) return;
+        if (uasCheckOkay.Exists(uid)) return;
+        if (uasCheckNotOkay.Exists(uid)) return;
+        Await_UploadAndSmallCheck(uid);
+    }
+
+    bool _RunCheck_UploadAndSmall(const string &in uid) {
+        auto map = Core::GetMapFromUid(uid);
         if (map is null) return false;
         log_debug("Map ("+map.Uid+") is Uploaded: " + map.FileUrl);
         string fileUrl = map.FileUrl;
-        string uid = map.Uid;
+        if (uid != map.Uid) {
+            warn("Upload check got different map uid: expected: " + uid + " / got: " + map.Uid);
+        }
         @map = null;
         // check file less than ~7366 KB
         auto fileSize = Http::GetFileSize(fileUrl);
@@ -631,8 +681,11 @@ namespace State {
                 NotifyWarning("Failed to get AT time for move on, defaulting to " + moveOnIn + ' seconds');
             }
         }
+        // this happens normally
         Chat::SendWarningMessage("Setting Next Map to load in " + moveOnIn + " seconds.");
+        // this hangs sometimes
         UpdateNextMap();
+        // first thing in CheckUploadedToNadeoAndSmall is updating the loading status
         if (!CheckUploadedToNadeoAndSmall()) {
             Chat::SendWarningMessage("Map not uploaded to Nadeo or too big! Skipping past " + loadNextId);
             S_LastTmxID = loadNextId;
@@ -651,7 +704,7 @@ namespace State {
     }
 
     void InitializeRoom() {
-        SetNextRoomTA(300);
+        SetNextRoomTA();
     }
 
     // setting map list doesn't reset position in map list; complex to figure out
@@ -666,6 +719,7 @@ namespace State {
     int lastSetNextMap;
     int mapTimeLimitWithExt = 300;
     void SetNextRoomTA(uint timelimit = 1, uint waitSeconds = 1) {
+        log_info("SetNextRoom TA: timelimit = " + timelimit + ", wait secs = " + waitSeconds);
         int myLastSetNextMap = Time::Now;
         lastSetNextMap = myLastSetNextMap;
         status = "Loading Map " + loadNextId + " / " + loadNextUid;
@@ -679,13 +733,18 @@ namespace State {
             .SetMode(BRM::GameMode::TimeAttack);
 
         auto resp = builder.SaveRoom();
-        uint waitTime = 5 + waitSeconds;
+        uint waitTime = 0 + waitSeconds;
         status += "\nSaved Room maps + time limit... Waiting " + waitTime + " s";
         log_trace('Room request returned: ' + Json::Write(resp));
         if (waitSeconds > 1) currState = GameState::Running;
         sleep(1000 * waitTime);
         sleep(0);
         // exit if another set next room has been triggered in the mean time
+        if (lastSetNextMap != myLastSetNextMap) return;
+        currState = GameState::Loading;
+        status = "Waiting for round to end...";
+        while (IsSequencePlayingOrFinished() && lastSetNextMap == myLastSetNextMap) yield();
+        currState = GameState::Running;
         if (lastSetNextMap != myLastSetNextMap) return;
         currState = GameState::Loading;
         int limit = S_DefaultTimeLimit;

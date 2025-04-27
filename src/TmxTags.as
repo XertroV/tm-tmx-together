@@ -23,7 +23,7 @@ void InitTmxTagsCoro() {
 class TmxTag {
     string name;
     uint id;
-    TmxTag(string name, uint id) {
+    TmxTag(const string &in name, uint id) {
         this.name = name;
         this.id = id;
     }

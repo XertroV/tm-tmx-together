@@ -22,7 +22,7 @@ void Main() {
         return;
     }
     @statusMsgs = StatusMsgUI();
-    nvgFont = nvg::LoadFont("DroidSans-Bold.ttf", true, true);
+    nvgFont = nvg::LoadFont("DroidSans-Bold.ttf");
     // nvgFont = nvg::LoadFont("fonts/Montserrat-SemiBoldItalic.ttf", true, true);
     startnew(MainCoro);
     startnew(ClearTaskCoro);
@@ -54,7 +54,10 @@ string lastMap;
 void MainCoro() {
     while (true) {
         yield();
-        if (!ShowWindow) continue;
+        if (!ShowWindow) {
+            sleep(250);
+            continue;
+        }
         auto map = GetApp().RootMap;
         if (map is null) {
             if (lastMap.Length > 0) {
@@ -81,8 +84,22 @@ bool ShowWindow = true;
 
 /** Render function called every frame intended only for menu items in `UI`. */
 void RenderMenu() {
-    if (UI::MenuItem(MenuTitle, "", ShowWindow)) {
+    if (UI::IsKeyDown(UI::Key::LeftAlt)) {
+        RenderMenuDebug();
+    } else if (UI::MenuItem(MenuTitle, "", ShowWindow)) {
         ShowWindow = !ShowWindow;
+    }
+}
+
+void RenderMenuDebug() {
+    if (UI::BeginMenu(MenuTitle)) {
+        if (UI::MenuItem(MenuTitle, "", ShowWindow)) {
+            ShowWindow = !ShowWindow;
+        }
+        if (UI::MenuItem("Debug: Next Map Cache", "", g_ShowNextMapDebug)) {
+            g_ShowNextMapDebug = !g_ShowNextMapDebug;
+        }
+        UI::EndMenu();
     }
 }
 
@@ -101,6 +118,7 @@ void Render() {
     ScoreEditor::Render();
     DrawPlayerMedalCounts();
     statusMsgs.RenderUpdate(lastDt);
+    Debug_RenderNextMapWindow();
 
     if (!ShowWindow) return;
 
@@ -283,4 +301,16 @@ Medal GetMedalForTime(uint time) {
     if (time <= map.TMObjective_SilverTime) return Medal::Silver;
     if (time <= map.TMObjective_BronzeTime) return Medal::Bronze;
     return Medal::NoMedal;
+}
+
+void dev_warn(const string &in msg) {
+#if DEV
+	log_warn(msg);
+#endif
+}
+
+void dev_trace(const string &in msg) {
+#if DEV
+	trace(msg);
+#endif
 }
