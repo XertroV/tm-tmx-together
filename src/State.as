@@ -649,8 +649,8 @@ namespace State {
     //     }
     // }
 
-    // array<Meta::PluginCoroutine@>@ CheckAllExtraUploadedToNadeoOrRemove() {
-    //     array<Meta::PluginCoroutine@>@ routines = {};
+    // array<awaitable@>@ CheckAllExtraUploadedToNadeoOrRemove() {
+    //     array<awaitable@>@ routines = {};
     //     for (uint i = 0; i < nextMapsExtra.Length; i++) {
     //         routines.InsertLast(startnew(CheckExtraUploadedToNadeoOrRemove, nextMapsExtra[i]));
     //     }

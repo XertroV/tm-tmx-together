@@ -1,7 +1,7 @@
 TmxTag@[] TMX_TAGS = {};
 dictionary TMX_TAG_LOOKUP = dictionary();
 
-Meta::PluginCoroutine@ _TmxTagsGetCoro = startnew(InitTmxTagsCoro);
+awaitable@ _TmxTagsGetCoro = startnew(InitTmxTagsCoro);
 
 void InitTmxTagsCoro() {
     yield();
