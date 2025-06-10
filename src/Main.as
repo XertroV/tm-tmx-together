@@ -26,7 +26,7 @@ void Main() {
     // nvgFont = nvg::LoadFont("fonts/Montserrat-SemiBoldItalic.ttf", true, true);
     startnew(MainCoro);
     startnew(ClearTaskCoro);
-    startnew(Chat::ChatCoro).WithRunContext(Meta::RunContext::GameLoop);
+    Meta::StartWithRunContext(Meta::RunContext::GameLoop, Chat::ChatCoro);
     startnew(LoadSavedCommands);
 
     if (!IO::FolderExists(IO::FromStorageFolder("users/"))) {
