@@ -123,6 +123,9 @@ const string FINISH_MSGS_BACKUP2_PATH = IO::FromStorageFolder("custom-finish-mes
 Json::Value@ FinishMsgs;
 
 void LoadCustomFinishMessages() {
+    if (IO::FileExists(FINISH_MSGS_BACKUP2_PATH)) {
+        IO::Delete(FINISH_MSGS_BACKUP2_PATH);
+    }
     if (IO::FileExists(FINISH_MSGS_BACKUP_PATH)) {
         IO::Move(FINISH_MSGS_BACKUP_PATH, FINISH_MSGS_BACKUP2_PATH);
     }
