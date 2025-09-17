@@ -25,6 +25,10 @@ Todo:
 - show more goat list: just WRs / ATs / Gs, and more columns
 
 
+- streaks: lobby win, WRs
+  - lifetime counter for streaks
+- highlight player name on scoreboard
+- dedicated scoreboard spot for lakanta
 
 
 - [ ] kora - "Was there a cut?"

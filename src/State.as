@@ -44,6 +44,8 @@ namespace TmxTogetherState {
 
 namespace State {
     GameState currState = GameState::NotRunning;
+    // tracks lifetime streak counters (lobby win streak, WR streak)
+    const string streaksFile = IO::FromStorageFolder("streaks.json");
     const string sessionSaveFile = IO::FromStorageFolder("session.json");
     const string sessionOldSaveFile = IO::FromStorageFolder("session-old.json");
 
@@ -257,7 +259,10 @@ namespace State {
             msg += " $zWas there a cut?";
         }
         Chat::SendGoodMessage(msg);
+        yield();
         CachePlayerMedals(rd);
+        yield();
+        // Streaks_OnPodium(bestPlayer);
         yield();
         SaveMedalsToClubNews();
     }
