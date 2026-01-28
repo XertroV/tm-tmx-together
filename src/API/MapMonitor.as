@@ -63,8 +63,8 @@ namespace MapMonitor {
         auto k = tostring(TrackID);
         if (loadingIds.Exists(k)) return;
         if (nextCache.Exists(k)) return;
-        startnew(CoroutineFuncUserdata(PrepopulateNextMap_Async), GetNextPayload(tags_csv, TrackID));
-        startnew(CoroutineFuncUserdata(EnsurePrepopulatedInAdvance), GetNextPayload(tags_csv, TrackID));
+        startnew(PrepopulateNextMap_Async, GetNextPayload(tags_csv, TrackID));
+        startnew(EnsurePrepopulatedInAdvance, GetNextPayload(tags_csv, TrackID));
     }
 
     [Setting hidden]
@@ -86,7 +86,7 @@ namespace MapMonitor {
         if (maps_NbBuffered_LastId.x > minBufferedMaps) return;
         log_trace("Not enough maps buffered after " + pl.TrackID + ": " + maps_NbBuffered_LastId.x + " / " + minBufferedMaps + ". Getting more...");
         AwaitNextMap_Cached(maps_NbBuffered_LastId.y, pl.tags_csv, Math::Min(minBufferedMaps, 20), true);
-        startnew(CoroutineFuncUserdata(EnsurePrepopulatedInAdvance), pl);
+        startnew(EnsurePrepopulatedInAdvance, pl);
     }
 
     // returns (nbBuffered, )
